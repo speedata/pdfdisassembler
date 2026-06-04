@@ -1,0 +1,61 @@
+{
+  "version": "1.7",
+  "xref_format": "classical",
+  "encrypted": false,
+  "trailer": {
+    "dict": {
+      "Size": {
+        "int": 4
+      },
+      "Root": {
+        "ref": "1 0"
+      }
+    }
+  },
+  "objects": {
+    "1 0": {
+      "dict": {
+        "Type": {
+          "name": "Catalog"
+        },
+        "Pages": {
+          "ref": "2 0"
+        }
+      }
+    },
+    "2 0": {
+      "dict": {
+        "Type": {
+          "name": "Pages"
+        },
+        "Count": {
+          "int": 0
+        },
+        "Kids": {
+          "array": []
+        }
+      }
+    },
+    "3 0": {
+      "stream": {
+        "dict": {
+          "Length": {
+            "int": 26
+          },
+          "Filter": {
+            "name": "FlateDecode"
+          }
+        },
+        "raw_length": 26,
+        "filters": [
+          "FlateDecode"
+        ],
+        "decoded": {
+          "length": 14,
+          "sha256": "4ac9a1927af81c4e7cd1b812848d3fdac958b613e4754a88af93b308df4ac7df",
+          "preview_utf8": "Hello, stream!"
+        }
+      }
+    }
+  }
+}

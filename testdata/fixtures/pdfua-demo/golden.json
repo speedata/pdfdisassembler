@@ -1,0 +1,3204 @@
+{
+  "version": "1.7",
+  "xref_format": "classical",
+  "encrypted": false,
+  "trailer": {
+    "dict": {
+      "ID": {
+        "array": [
+          {
+            "hex": "62a379b5a12ce31bef329a1f37876600"
+          },
+          {
+            "hex": "62a379b5a12ce31bef329a1f37876600"
+          }
+        ]
+      },
+      "Info": {
+        "ref": "59 0"
+      },
+      "Root": {
+        "ref": "38 0"
+      },
+      "Size": {
+        "int": 60
+      }
+    }
+  },
+  "objects": {
+    "1 0": {
+      "dict": {
+        "Type": {
+          "name": "Font"
+        },
+        "BaseFont": {
+          "name": "BZDLFS+CrimsonPro-Regular"
+        },
+        "DescendantFonts": {
+          "array": [
+            {
+              "ref": "42 0"
+            }
+          ]
+        },
+        "Encoding": {
+          "name": "Identity-H"
+        },
+        "Subtype": {
+          "name": "Type0"
+        },
+        "ToUnicode": {
+          "ref": "41 0"
+        }
+      }
+    },
+    "2 0": {
+      "dict": {
+        "Type": {
+          "name": "Font"
+        },
+        "BaseFont": {
+          "name": "LNQEXG+CrimsonPro-Bold"
+        },
+        "DescendantFonts": {
+          "array": [
+            {
+              "ref": "46 0"
+            }
+          ]
+        },
+        "Encoding": {
+          "name": "Identity-H"
+        },
+        "Subtype": {
+          "name": "Type0"
+        },
+        "ToUnicode": {
+          "ref": "45 0"
+        }
+      }
+    },
+    "3 0": {
+      "dict": {
+        "Type": {
+          "name": "Font"
+        },
+        "BaseFont": {
+          "name": "AVREHH+CrimsonPro-Italic"
+        },
+        "DescendantFonts": {
+          "array": [
+            {
+              "ref": "50 0"
+            }
+          ]
+        },
+        "Encoding": {
+          "name": "Identity-H"
+        },
+        "Subtype": {
+          "name": "Type0"
+        },
+        "ToUnicode": {
+          "ref": "49 0"
+        }
+      }
+    },
+    "4 0": {
+      "dict": {
+        "Type": {
+          "name": "Font"
+        },
+        "BaseFont": {
+          "name": "JYZTRN+CamingoCode-Bold"
+        },
+        "DescendantFonts": {
+          "array": [
+            {
+              "ref": "54 0"
+            }
+          ]
+        },
+        "Encoding": {
+          "name": "Identity-H"
+        },
+        "Subtype": {
+          "name": "Type0"
+        },
+        "ToUnicode": {
+          "ref": "53 0"
+        }
+      }
+    },
+    "5 0": {
+      "dict": {
+        "Type": {
+          "name": "Font"
+        },
+        "BaseFont": {
+          "name": "YCXYQB+CamingoCode-Regular"
+        },
+        "DescendantFonts": {
+          "array": [
+            {
+              "ref": "58 0"
+            }
+          ]
+        },
+        "Encoding": {
+          "name": "Identity-H"
+        },
+        "Subtype": {
+          "name": "Type0"
+        },
+        "ToUnicode": {
+          "ref": "57 0"
+        }
+      }
+    },
+    "6 0": {
+      "dict": {
+        "Type": {
+          "name": "Page"
+        },
+        "Contents": {
+          "ref": "7 0"
+        },
+        "Parent": {
+          "ref": "32 0"
+        },
+        "Resources": {
+          "dict": {
+            "Font": {
+              "dict": {
+                "F1": {
+                  "ref": "1 0"
+                },
+                "F3": {
+                  "ref": "2 0"
+                },
+                "F4": {
+                  "ref": "3 0"
+                },
+                "F5": {
+                  "ref": "4 0"
+                },
+                "F6": {
+                  "ref": "5 0"
+                }
+              }
+            },
+            "XObject": {
+              "dict": {
+                "ImgBag2": {
+                  "ref": "8 0"
+                }
+              }
+            }
+          }
+        },
+        "StructParents": {
+          "int": 1
+        },
+        "TrimBox": {
+          "array": [
+            {
+              "int": 0
+            },
+            {
+              "int": 0
+            },
+            {
+              "real": 595.28
+            },
+            {
+              "real": 841.89
+            }
+          ]
+        }
+      }
+    },
+    "7 0": {
+      "stream": {
+        "dict": {
+          "Filter": {
+            "name": "FlateDecode"
+          },
+          "Length": {
+            "int": 2737
+          },
+          "Length1": {
+            "int": 14503
+          }
+        },
+        "raw_length": 2737,
+        "filters": [
+          "FlateDecode"
+        ],
+        "decoded": {
+          "length": 14503,
+          "sha256": "5cf965cecc849327e8aff22af072173c9566363887f142c8626d60c8a237e45a",
+          "preview_utf8": "/Artifact BMC\n\nEMC\n/H1 <</MCID 0>> BDC\n0.05 0.23 0.4 rg BT 100 Tz 0 Ts \n/F3 22 T…"
+        }
+      }
+    },
+    "8 0": {
+      "stream": {
+        "dict": {
+          "Filter": {
+            "name": "FlateDecode"
+          },
+          "Type": {
+            "name": "XObject"
+          },
+          "Subtype": {
+            "name": "Form"
+          },
+          "FormType": {
+            "int": 1
+          },
+          "BBox": {
+            "array": [
+              {
+                "real": 0
+              },
+              {
+                "real": 0
+              },
+              {
+                "real": 841.89
+              },
+              {
+                "real": 595.28
+              }
+            ]
+          },
+          "StructParent": {
+            "int": 0
+          },
+          "Resources": {
+            "dict": {
+              "ExtGState": {
+                "dict": {
+                  "a0": {
+                    "dict": {
+                      "CA": {
+                        "int": 1
+                      },
+                      "ca": {
+                        "int": 1
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "Length": {
+            "int": 68069
+          }
+        },
+        "raw_length": 68069,
+        "filters": [
+          "FlateDecode"
+        ],
+        "decoded": {
+          "length": 171668,
+          "sha256": "f313e213218ea6cc57612fe8ad542b0d00918f3ad2c76bab1aba18f0fe142049",
+          "preview_utf8": "q\n0 0 0 rg /a0 gs\n462.723 162.502 m 447.234 162.502 434.492 150.619 433.027 135.…"
+        }
+      }
+    },
+    "9 0": {
+      "dict": {
+        "Type": {
+          "name": "StructTreeRoot"
+        },
+        "K": {
+          "ref": "10 0"
+        },
+        "ParentTree": {
+          "dict": {
+            "Nums": {
+              "array": [
+                {
+                  "int": 0
+                },
+                {
+                  "ref": "30 0"
+                },
+                {
+                  "int": 1
+                },
+                {
+                  "array": [
+                    {
+                      "ref": "11 0"
+                    },
+                    {
+                      "ref": "12 0"
+                    },
+                    {
+                      "ref": "13 0"
+                    },
+                    {
+                      "ref": "14 0"
+                    },
+                    {
+                      "ref": "17 0"
+                    },
+                    {
+                      "ref": "19 0"
+                    },
+                    {
+                      "ref": "21 0"
+                    },
+                    {
+                      "ref": "23 0"
+                    },
+                    {
+                      "ref": "25 0"
+                    },
+                    {
+                      "ref": "26 0"
+                    },
+                    {
+                      "ref": "28 0"
+                    },
+                    {
+                      "ref": "29 0"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "10 0": {
+      "dict": {
+        "Type": {
+          "name": "StructElem"
+        },
+        "K": {
+          "array": [
+            {
+              "ref": "11 0"
+            },
+            {
+              "ref": "12 0"
+            },
+            {
+              "ref": "13 0"
+            },
+            {
+              "ref": "14 0"
+            },
+            {
+              "ref": "15 0"
+            },
+            {
+              "ref": "24 0"
+            },
+            {
+              "ref": "26 0"
+            },
+            {
+              "ref": "27 0"
+            },
+            {
+              "ref": "29 0"
+            },
+            {
+              "ref": "30 0"
+            }
+          ]
+        },
+        "P": {
+          "ref": "9 0"
+        },
+        "S": {
+          "name": "Document"
+        }
+      }
+    },
+    "11 0": {
+      "dict": {
+        "Type": {
+          "name": "StructElem"
+        },
+        "ActualText": {
+          "text": "Markdown to PDF/UA"
+        },
+        "K": {
+          "dict": {
+            "Type": {
+              "name": "MCR"
+            },
+            "Pg": {
+              "ref": "6 0"
+            },
+            "MCID": {
+              "int": 0
+            }
+          }
+        },
+        "P": {
+          "ref": "10 0"
+        },
+        "S": {
+          "name": "H1"
+        }
+      }
+    },
+    "12 0": {
+      "dict": {
+        "Type": {
+          "name": "StructElem"
+        },
+        "ActualText": {
+          "text": "This page was typeset from Markdown – and is fully tagged."
+        },
+        "K": {
+          "dict": {
+            "Type": {
+              "name": "MCR"
+            },
+            "Pg": {
+              "ref": "6 0"
+            },
+            "MCID": {
+              "int": 1
+            }
+          }
+        },
+        "P": {
+          "ref": "10 0"
+        },
+        "S": {
+          "name": "P"
+        }
+      }
+    },
+    "13 0": {
+      "dict": {
+        "Type": {
+          "name": "StructElem"
+        },
+        "ActualText": {
+          "text": "Rendered with glu (boxes and glue). The YAML front matter declares format: PDF/UA, lang: en and a title: – that is all it takes. From those three lines glu automatically writes StructTreeRoot, MarkInfo, /DisplayDocTitle, /Lang and the XMP tag pdfuaid:part 1."
+        },
+        "K": {
+          "dict": {
+            "Type": {
+              "name": "MCR"
+            },
+            "Pg": {
+              "ref": "6 0"
+            },
+            "MCID": {
+              "int": 2
+            }
+          }
+        },
+        "P": {
+          "ref": "10 0"
+        },
+        "S": {
+          "name": "P"
+        }
+      }
+    },
+    "14 0": {
+      "dict": {
+        "Type": {
+          "name": "StructElem"
+        },
+        "ActualText": {
+          "text": "What is structurally tagged here"
+        },
+        "K": {
+          "dict": {
+            "Type": {
+              "name": "MCR"
+            },
+            "Pg": {
+              "ref": "6 0"
+            },
+            "MCID": {
+              "int": 3
+            }
+          }
+        },
+        "P": {
+          "ref": "10 0"
+        },
+        "S": {
+          "name": "H2"
+        }
+      }
+    },
+    "15 0": {
+      "dict": {
+        "Type": {
+          "name": "StructElem"
+        },
+        "K": {
+          "array": [
+            {
+              "ref": "16 0"
+            },
+            {
+              "ref": "18 0"
+            },
+            {
+              "ref": "20 0"
+            },
+            {
+              "ref": "22 0"
+            }
+          ]
+        },
+        "P": {
+          "ref": "10 0"
+        },
+        "S": {
+          "name": "L"
+        }
+      }
+    },
+    "16 0": {
+      "dict": {
+        "Type": {
+          "name": "StructElem"
+        },
+        "K": {
+          "ref": "17 0"
+        },
+        "P": {
+          "ref": "15 0"
+        },
+        "S": {
+          "name": "LI"
+        }
+      }
+    },
+    "17 0": {
+      "dict": {
+        "Type": {
+          "name": "StructElem"
+        },
+        "ActualText": {
+          "text": "Headings build the outline tree (H1, H2)."
+        },
+        "K": {
+          "dict": {
+            "Type": {
+              "name": "MCR"
+            },
+            "Pg": {
+              "ref": "6 0"
+            },
+            "MCID": {
+              "int": 4
+            }
+          }
+        },
+        "P": {
+          "ref": "16 0"
+        },
+        "S": {
+          "name": "LBody"
+        }
+      }
+    },
+    "18 0": {
+      "dict": {
+        "Type": {
+          "name": "StructElem"
+        },
+        "K": {
+          "ref": "19 0"
+        },
+        "P": {
+          "ref": "15 0"
+        },
+        "S": {
+          "name": "LI"
+        }
+      }
+    },
+    "19 0": {
+      "dict": {
+        "Type": {
+          "name": "StructElem"
+        },
+        "ActualText": {
+          "text": "Paragraphs become P, lists become L / LI."
+        },
+        "K": {
+          "dict": {
+            "Type": {
+              "name": "MCR"
+            },
+            "Pg": {
+              "ref": "6 0"
+            },
+            "MCID": {
+              "int": 5
+            }
+          }
+        },
+        "P": {
+          "ref": "18 0"
+        },
+        "S": {
+          "name": "LBody"
+        }
+      }
+    },
+    "20 0": {
+      "dict": {
+        "Type": {
+          "name": "StructElem"
+        },
+        "K": {
+          "ref": "21 0"
+        },
+        "P": {
+          "ref": "15 0"
+        },
+        "S": {
+          "name": "LI"
+        }
+      }
+    },
+    "21 0": {
+      "dict": {
+        "Type": {
+          "name": "StructElem"
+        },
+        "ActualText": {
+          "text": "The figure below is a Figure element with /Alt text."
+        },
+        "K": {
+          "dict": {
+            "Type": {
+              "name": "MCR"
+            },
+            "Pg": {
+              "ref": "6 0"
+            },
+            "MCID": {
+              "int": 6
+            }
+          }
+        },
+        "P": {
+          "ref": "20 0"
+        },
+        "S": {
+          "name": "LBody"
+        }
+      }
+    },
+    "22 0": {
+      "dict": {
+        "Type": {
+          "name": "StructElem"
+        },
+        "K": {
+          "ref": "23 0"
+        },
+        "P": {
+          "ref": "15 0"
+        },
+        "S": {
+          "name": "LI"
+        }
+      }
+    },
+    "23 0": {
+      "dict": {
+        "Type": {
+          "name": "StructElem"
+        },
+        "ActualText": {
+          "text": "Code blocks are emitted as Code."
+        },
+        "K": {
+          "dict": {
+            "Type": {
+              "name": "MCR"
+            },
+            "Pg": {
+              "ref": "6 0"
+            },
+            "MCID": {
+              "int": 7
+            }
+          }
+        },
+        "P": {
+          "ref": "22 0"
+        },
+        "S": {
+          "name": "LBody"
+        }
+      }
+    },
+    "24 0": {
+      "dict": {
+        "Type": {
+          "name": "StructElem"
+        },
+        "K": {
+          "ref": "25 0"
+        },
+        "P": {
+          "ref": "10 0"
+        },
+        "S": {
+          "name": "BlockQuote"
+        }
+      }
+    },
+    "25 0": {
+      "dict": {
+        "Type": {
+          "name": "StructElem"
+        },
+        "ActualText": {
+          "text": "Acrobat, NVDA and PAC all see this as a properly structured document – no artifacts, no untagged content."
+        },
+        "K": {
+          "dict": {
+            "Type": {
+              "name": "MCR"
+            },
+            "Pg": {
+              "ref": "6 0"
+            },
+            "MCID": {
+              "int": 8
+            }
+          }
+        },
+        "P": {
+          "ref": "24 0"
+        },
+        "S": {
+          "name": "P"
+        }
+      }
+    },
+    "26 0": {
+      "dict": {
+        "Type": {
+          "name": "StructElem"
+        },
+        "ActualText": {
+          "text": "Front matter"
+        },
+        "K": {
+          "dict": {
+            "Type": {
+              "name": "MCR"
+            },
+            "Pg": {
+              "ref": "6 0"
+            },
+            "MCID": {
+              "int": 9
+            }
+          }
+        },
+        "P": {
+          "ref": "10 0"
+        },
+        "S": {
+          "name": "H2"
+        }
+      }
+    },
+    "27 0": {
+      "dict": {
+        "Type": {
+          "name": "StructElem"
+        },
+        "K": {
+          "ref": "28 0"
+        },
+        "P": {
+          "ref": "10 0"
+        },
+        "S": {
+          "name": "P"
+        }
+      }
+    },
+    "28 0": {
+      "dict": {
+        "Type": {
+          "name": "StructElem"
+        },
+        "ActualText": {
+          "text": "---\ntitle: Markdown to PDF/UA with glu\nlang: en\nformat: PDF/UA\n---"
+        },
+        "K": {
+          "dict": {
+            "Type": {
+              "name": "MCR"
+            },
+            "Pg": {
+              "ref": "6 0"
+            },
+            "MCID": {
+              "int": 10
+            }
+          }
+        },
+        "P": {
+          "ref": "27 0"
+        },
+        "S": {
+          "name": "Code"
+        }
+      }
+    },
+    "29 0": {
+      "dict": {
+        "Type": {
+          "name": "StructElem"
+        },
+        "ActualText": {
+          "text": "An embedded figure"
+        },
+        "K": {
+          "dict": {
+            "Type": {
+              "name": "MCR"
+            },
+            "Pg": {
+              "ref": "6 0"
+            },
+            "MCID": {
+              "int": 11
+            }
+          }
+        },
+        "P": {
+          "ref": "10 0"
+        },
+        "S": {
+          "name": "H2"
+        }
+      }
+    },
+    "30 0": {
+      "dict": {
+        "Type": {
+          "name": "StructElem"
+        },
+        "A": {
+          "dict": {
+            "O": {
+              "name": "Layout"
+            },
+            "Placement": {
+              "name": "Block"
+            },
+            "BBox": {
+              "array": [
+                {
+                  "real": 68.03
+                },
+                {
+                  "real": 488.22
+                },
+                {
+                  "real": 527.24
+                },
+                {
+                  "real": 628.52
+                }
+              ]
+            }
+          }
+        },
+        "Alt": {
+          "text": "Photograph of the sea, embedded as a Form XObject"
+        },
+        "K": {
+          "dict": {
+            "Type": {
+              "name": "OBJR"
+            },
+            "Obj": {
+              "ref": "8 0"
+            },
+            "Pg": {
+              "ref": "6 0"
+            }
+          }
+        },
+        "P": {
+          "ref": "10 0"
+        },
+        "S": {
+          "name": "Figure"
+        }
+      }
+    },
+    "31 0": {
+      "stream": {
+        "dict": {
+          "Type": {
+            "name": "Metadata"
+          },
+          "Length": {
+            "int": 1229
+          },
+          "Subtype": {
+            "name": "XML"
+          }
+        },
+        "raw_length": 1229,
+        "filters": [],
+        "decoded": {
+          "length": 1229,
+          "sha256": "8f2ced3e481012ce7c7c6b2ac15d96d81161c60ab2ee94d6f60caf5566cb8d53"
+        }
+      }
+    },
+    "32 0": {
+      "dict": {
+        "Type": {
+          "name": "Pages"
+        },
+        "Count": {
+          "int": 1
+        },
+        "Kids": {
+          "array": [
+            {
+              "ref": "6 0"
+            }
+          ]
+        },
+        "MediaBox": {
+          "array": [
+            {
+              "int": 0
+            },
+            {
+              "int": 0
+            },
+            {
+              "real": 595.28
+            },
+            {
+              "real": 841.89
+            }
+          ]
+        }
+      }
+    },
+    "33 0": {
+      "dict": {
+        "Type": {
+          "name": "Outlines"
+        },
+        "Count": {
+          "int": 4
+        },
+        "First": {
+          "ref": "34 0"
+        },
+        "Last": {
+          "ref": "37 0"
+        }
+      }
+    },
+    "34 0": {
+      "dict": {
+        "Dest": {
+          "array": [
+            {
+              "ref": "6 0"
+            },
+            {
+              "name": "Fit"
+            }
+          ]
+        },
+        "Next": {
+          "ref": "35 0"
+        },
+        "Parent": {
+          "ref": "33 0"
+        },
+        "Title": {
+          "text": "Markdown to PDF/UA"
+        }
+      }
+    },
+    "35 0": {
+      "dict": {
+        "Dest": {
+          "array": [
+            {
+              "ref": "6 0"
+            },
+            {
+              "name": "Fit"
+            }
+          ]
+        },
+        "Next": {
+          "ref": "36 0"
+        },
+        "Parent": {
+          "ref": "33 0"
+        },
+        "Prev": {
+          "ref": "34 0"
+        },
+        "Title": {
+          "text": "What is structurally tagged here"
+        }
+      }
+    },
+    "36 0": {
+      "dict": {
+        "Dest": {
+          "array": [
+            {
+              "ref": "6 0"
+            },
+            {
+              "name": "Fit"
+            }
+          ]
+        },
+        "Next": {
+          "ref": "37 0"
+        },
+        "Parent": {
+          "ref": "33 0"
+        },
+        "Prev": {
+          "ref": "35 0"
+        },
+        "Title": {
+          "text": "Front matter"
+        }
+      }
+    },
+    "37 0": {
+      "dict": {
+        "Dest": {
+          "array": [
+            {
+              "ref": "6 0"
+            },
+            {
+              "name": "Fit"
+            }
+          ]
+        },
+        "Parent": {
+          "ref": "33 0"
+        },
+        "Prev": {
+          "ref": "36 0"
+        },
+        "Title": {
+          "text": "An embedded figure"
+        }
+      }
+    },
+    "38 0": {
+      "dict": {
+        "Type": {
+          "name": "Catalog"
+        },
+        "Outlines": {
+          "ref": "33 0"
+        },
+        "Lang": {
+          "text": "en"
+        },
+        "MarkInfo": {
+          "dict": {
+            "Marked": {
+              "bool": true
+            },
+            "Suspects": {
+              "bool": false
+            }
+          }
+        },
+        "Metadata": {
+          "ref": "31 0"
+        },
+        "Pages": {
+          "ref": "32 0"
+        },
+        "StructTreeRoot": {
+          "ref": "9 0"
+        },
+        "ViewerPreferences": {
+          "dict": {
+            "DisplayDocTitle": {
+              "bool": true
+            }
+          }
+        }
+      }
+    },
+    "39 0": {
+      "stream": {
+        "dict": {
+          "Filter": {
+            "name": "FlateDecode"
+          },
+          "Length": {
+            "int": 4252
+          },
+          "Length1": {
+            "int": 11864
+          }
+        },
+        "raw_length": 4252,
+        "filters": [
+          "FlateDecode"
+        ],
+        "decoded": {
+          "length": 11864,
+          "sha256": "1db52ea7e54237618253599e8809208e196c393a66451435e032da108e451107"
+        }
+      }
+    },
+    "40 0": {
+      "dict": {
+        "Type": {
+          "name": "FontDescriptor"
+        },
+        "Ascent": {
+          "int": 918
+        },
+        "CapHeight": {
+          "int": 587
+        },
+        "Descent": {
+          "int": -220
+        },
+        "Flags": {
+          "int": 32
+        },
+        "FontBBox": {
+          "array": [
+            {
+              "int": -107
+            },
+            {
+              "int": -283
+            },
+            {
+              "int": 1159
+            },
+            {
+              "int": 984
+            }
+          ]
+        },
+        "FontFile2": {
+          "ref": "39 0"
+        },
+        "FontName": {
+          "name": "BZDLFS+CrimsonPro-Regular"
+        },
+        "ItalicAngle": {
+          "int": 0
+        },
+        "StemV": {
+          "int": 80
+        },
+        "XHeight": {
+          "int": 425
+        }
+      }
+    },
+    "41 0": {
+      "stream": {
+        "dict": {
+          "Length": {
+            "int": 879
+          }
+        },
+        "raw_length": 879,
+        "filters": [],
+        "decoded": {
+          "length": 879,
+          "sha256": "8a595153c92f4d9492523ca3633beb65c34503f63db4c5bcd9e62363c566b99c",
+          "preview_utf8": "/CIDInit /ProcSet findresource begin\n12 dict begin\nbegincmap\n/CIDSystemInfo << /…"
+        }
+      }
+    },
+    "42 0": {
+      "dict": {
+        "Type": {
+          "name": "Font"
+        },
+        "BaseFont": {
+          "name": "BZDLFS+CrimsonPro-Regular"
+        },
+        "CIDSystemInfo": {
+          "dict": {
+            "Ordering": {
+              "text": "Identity"
+            },
+            "Registry": {
+              "text": "Adobe"
+            },
+            "Supplement": {
+              "int": 0
+            }
+          }
+        },
+        "CIDToGIDMap": {
+          "name": "Identity"
+        },
+        "FontDescriptor": {
+          "ref": "40 0"
+        },
+        "Subtype": {
+          "name": "CIDFontType2"
+        },
+        "W": {
+          "array": [
+            {
+              "int": 0
+            },
+            {
+              "array": [
+                {
+                  "int": 500
+                },
+                {
+                  "real": 568.359375
+                }
+              ]
+            },
+            {
+              "int": 30
+            },
+            {
+              "array": [
+                {
+                  "real": 589.84375
+                }
+              ]
+            },
+            {
+              "int": 68
+            },
+            {
+              "array": [
+                {
+                  "real": 494.140625
+                }
+              ]
+            },
+            {
+              "int": 76
+            },
+            {
+              "array": [
+                {
+                  "real": 656.25
+                }
+              ]
+            },
+            {
+              "int": 102
+            },
+            {
+              "array": [
+                {
+                  "real": 499.0234375
+                }
+              ]
+            },
+            {
+              "int": 112
+            },
+            {
+              "array": [
+                {
+                  "real": 830.078125
+                }
+              ]
+            },
+            {
+              "int": 160
+            },
+            {
+              "array": [
+                {
+                  "real": 501.953125
+                }
+              ]
+            },
+            {
+              "int": 163
+            },
+            {
+              "array": [
+                {
+                  "real": 553.7109375
+                }
+              ]
+            },
+            {
+              "int": 184
+            },
+            {
+              "array": [
+                {
+                  "real": 543.9453125
+                }
+              ]
+            },
+            {
+              "int": 220
+            },
+            {
+              "array": [
+                {
+                  "real": 568.359375
+                },
+                {
+                  "real": 528.3203125
+                }
+              ]
+            },
+            {
+              "int": 237
+            },
+            {
+              "array": [
+                {
+                  "real": 462.890625
+                }
+              ]
+            },
+            {
+              "int": 265
+            },
+            {
+              "array": [
+                {
+                  "real": 513.671875
+                },
+                {
+                  "real": 415.0390625
+                }
+              ]
+            },
+            {
+              "int": 273
+            },
+            {
+              "array": [
+                {
+                  "real": 526.3671875
+                }
+              ]
+            },
+            {
+              "int": 280
+            },
+            {
+              "array": [
+                {
+                  "real": 439.453125
+                }
+              ]
+            },
+            {
+              "int": 304
+            },
+            {
+              "array": [
+                {
+                  "real": 295.8984375
+                },
+                {
+                  "real": 483.3984375
+                }
+              ]
+            },
+            {
+              "int": 312
+            },
+            {
+              "array": [
+                {
+                  "real": 537.109375
+                }
+              ]
+            },
+            {
+              "int": 317
+            },
+            {
+              "array": [
+                {
+                  "real": 261.71875
+                }
+              ]
+            },
+            {
+              "int": 337
+            },
+            {
+              "array": [
+                {
+                  "real": 477.5390625
+                }
+              ]
+            },
+            {
+              "int": 340
+            },
+            {
+              "array": [
+                {
+                  "real": 262.6953125
+                }
+              ]
+            },
+            {
+              "int": 349
+            },
+            {
+              "array": [
+                {
+                  "real": 803.7109375
+                }
+              ]
+            },
+            {
+              "int": 351
+            },
+            {
+              "array": [
+                {
+                  "real": 537.109375
+                }
+              ]
+            },
+            {
+              "int": 362
+            },
+            {
+              "array": [
+                {
+                  "real": 496.09375
+                }
+              ]
+            },
+            {
+              "int": 397
+            },
+            {
+              "array": [
+                {
+                  "real": 524.4140625
+                }
+              ]
+            },
+            {
+              "int": 400
+            },
+            {
+              "array": [
+                {
+                  "real": 355.46875
+                }
+              ]
+            },
+            {
+              "int": 408
+            },
+            {
+              "array": [
+                {
+                  "real": 392.578125
+                }
+              ]
+            },
+            {
+              "int": 420
+            },
+            {
+              "array": [
+                {
+                  "real": 331.0546875
+                }
+              ]
+            },
+            {
+              "int": 428
+            },
+            {
+              "array": [
+                {
+                  "real": 530.2734375
+                }
+              ]
+            },
+            {
+              "int": 452
+            },
+            {
+              "array": [
+                {
+                  "real": 735.3515625
+                }
+              ]
+            },
+            {
+              "int": 457
+            },
+            {
+              "array": [
+                {
+                  "real": 469.7265625
+                },
+                {
+                  "real": 460.9375
+                }
+              ]
+            },
+            {
+              "int": 478
+            },
+            {
+              "array": [
+                {
+                  "real": 534.1796875
+                }
+              ]
+            },
+            {
+              "int": 577
+            },
+            {
+              "array": [
+                {
+                  "real": 228.515625
+                },
+                {
+                  "real": 228.515625
+                }
+              ]
+            },
+            {
+              "int": 587
+            },
+            {
+              "array": [
+                {
+                  "real": 410.15625
+                }
+              ]
+            },
+            {
+              "int": 590
+            },
+            {
+              "array": [
+                {
+                  "real": 357.421875
+                }
+              ]
+            },
+            {
+              "int": 594
+            },
+            {
+              "array": [
+                {
+                  "real": 351.5625
+                },
+                {
+                  "real": 351.5625
+                }
+              ]
+            },
+            {
+              "int": 602
+            },
+            {
+              "array": [
+                {
+                  "real": 488.28125
+                }
+              ]
+            },
+            {
+              "int": 625
+            },
+            {
+              "array": [
+                {
+                  "real": 187.5
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "43 0": {
+      "stream": {
+        "dict": {
+          "Filter": {
+            "name": "FlateDecode"
+          },
+          "Length": {
+            "int": 3310
+          },
+          "Length1": {
+            "int": 10584
+          }
+        },
+        "raw_length": 3310,
+        "filters": [
+          "FlateDecode"
+        ],
+        "decoded": {
+          "length": 10584,
+          "sha256": "574f1438b46e26875646796fe4745383608ba239d8169eee37ad0f21f543411c"
+        }
+      }
+    },
+    "44 0": {
+      "dict": {
+        "Type": {
+          "name": "FontDescriptor"
+        },
+        "Ascent": {
+          "int": 918
+        },
+        "CapHeight": {
+          "int": 587
+        },
+        "Descent": {
+          "int": -220
+        },
+        "Flags": {
+          "int": 32
+        },
+        "FontBBox": {
+          "array": [
+            {
+              "int": -107
+            },
+            {
+              "int": -283
+            },
+            {
+              "int": 1159
+            },
+            {
+              "int": 984
+            }
+          ]
+        },
+        "FontFile2": {
+          "ref": "43 0"
+        },
+        "FontName": {
+          "name": "LNQEXG+CrimsonPro-Bold"
+        },
+        "ItalicAngle": {
+          "int": 0
+        },
+        "StemV": {
+          "int": 140
+        },
+        "XHeight": {
+          "int": 425
+        }
+      }
+    },
+    "45 0": {
+      "stream": {
+        "dict": {
+          "Length": {
+            "int": 710
+          }
+        },
+        "raw_length": 710,
+        "filters": [],
+        "decoded": {
+          "length": 710,
+          "sha256": "6849b17e78a731b32e149b4f6f8d4cf7831549c1d38e8b503ef9bead6ffaa236",
+          "preview_utf8": "/CIDInit /ProcSet findresource begin\n12 dict begin\nbegincmap\n/CIDSystemInfo << /…"
+        }
+      }
+    },
+    "46 0": {
+      "dict": {
+        "Type": {
+          "name": "Font"
+        },
+        "BaseFont": {
+          "name": "LNQEXG+CrimsonPro-Bold"
+        },
+        "CIDSystemInfo": {
+          "dict": {
+            "Ordering": {
+              "text": "Identity"
+            },
+            "Registry": {
+              "text": "Adobe"
+            },
+            "Supplement": {
+              "int": 0
+            }
+          }
+        },
+        "CIDToGIDMap": {
+          "name": "Identity"
+        },
+        "FontDescriptor": {
+          "ref": "44 0"
+        },
+        "Subtype": {
+          "name": "CIDFontType2"
+        },
+        "W": {
+          "array": [
+            {
+              "int": 0
+            },
+            {
+              "array": [
+                {
+                  "int": 500
+                },
+                {
+                  "real": 594.7265625
+                }
+              ]
+            },
+            {
+              "int": 37
+            },
+            {
+              "array": [
+                {
+                  "real": 690.4296875
+                }
+              ]
+            },
+            {
+              "int": 68
+            },
+            {
+              "array": [
+                {
+                  "real": 526.3671875
+                }
+              ]
+            },
+            {
+              "int": 112
+            },
+            {
+              "array": [
+                {
+                  "real": 870.1171875
+                }
+              ]
+            },
+            {
+              "int": 160
+            },
+            {
+              "array": [
+                {
+                  "real": 555.6640625
+                }
+              ]
+            },
+            {
+              "int": 191
+            },
+            {
+              "array": [
+                {
+                  "real": 685.546875
+                }
+              ]
+            },
+            {
+              "int": 215
+            },
+            {
+              "array": [
+                {
+                  "real": 955.078125
+                }
+              ]
+            },
+            {
+              "int": 237
+            },
+            {
+              "array": [
+                {
+                  "real": 488.28125
+                }
+              ]
+            },
+            {
+              "int": 265
+            },
+            {
+              "array": [
+                {
+                  "real": 544.921875
+                },
+                {
+                  "real": 449.21875
+                }
+              ]
+            },
+            {
+              "int": 273
+            },
+            {
+              "array": [
+                {
+                  "real": 547.8515625
+                }
+              ]
+            },
+            {
+              "int": 280
+            },
+            {
+              "array": [
+                {
+                  "real": 465.8203125
+                }
+              ]
+            },
+            {
+              "int": 305
+            },
+            {
+              "array": [
+                {
+                  "real": 506.8359375
+                }
+              ]
+            },
+            {
+              "int": 312
+            },
+            {
+              "array": [
+                {
+                  "real": 574.21875
+                }
+              ]
+            },
+            {
+              "int": 317
+            },
+            {
+              "array": [
+                {
+                  "real": 291.015625
+                }
+              ]
+            },
+            {
+              "int": 337
+            },
+            {
+              "array": [
+                {
+                  "real": 543.9453125
+                }
+              ]
+            },
+            {
+              "int": 340
+            },
+            {
+              "array": [
+                {
+                  "real": 291.015625
+                }
+              ]
+            },
+            {
+              "int": 349
+            },
+            {
+              "array": [
+                {
+                  "real": 846.6796875
+                }
+              ]
+            },
+            {
+              "int": 351
+            },
+            {
+              "array": [
+                {
+                  "real": 574.21875
+                }
+              ]
+            },
+            {
+              "int": 362
+            },
+            {
+              "array": [
+                {
+                  "real": 520.5078125
+                }
+              ]
+            },
+            {
+              "int": 400
+            },
+            {
+              "array": [
+                {
+                  "real": 401.3671875
+                }
+              ]
+            },
+            {
+              "int": 408
+            },
+            {
+              "array": [
+                {
+                  "real": 408.203125
+                }
+              ]
+            },
+            {
+              "int": 420
+            },
+            {
+              "array": [
+                {
+                  "real": 360.3515625
+                }
+              ]
+            },
+            {
+              "int": 428
+            },
+            {
+              "array": [
+                {
+                  "real": 568.359375
+                }
+              ]
+            },
+            {
+              "int": 452
+            },
+            {
+              "array": [
+                {
+                  "real": 795.8984375
+                }
+              ]
+            },
+            {
+              "int": 458
+            },
+            {
+              "array": [
+                {
+                  "real": 486.328125
+                }
+              ]
+            },
+            {
+              "int": 478
+            },
+            {
+              "array": [
+                {
+                  "real": 584.9609375
+                }
+              ]
+            },
+            {
+              "int": 590
+            },
+            {
+              "array": [
+                {
+                  "real": 406.25
+                }
+              ]
+            },
+            {
+              "int": 625
+            },
+            {
+              "array": [
+                {
+                  "real": 192.3828125
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "47 0": {
+      "stream": {
+        "dict": {
+          "Filter": {
+            "name": "FlateDecode"
+          },
+          "Length": {
+            "int": 3679
+          },
+          "Length1": {
+            "int": 11144
+          }
+        },
+        "raw_length": 3679,
+        "filters": [
+          "FlateDecode"
+        ],
+        "decoded": {
+          "length": 11144,
+          "sha256": "3f54c3113c615cf618c245df334fa62a49c591b372659a292a97c995536f0c5a"
+        }
+      }
+    },
+    "48 0": {
+      "dict": {
+        "Type": {
+          "name": "FontDescriptor"
+        },
+        "Ascent": {
+          "int": 918
+        },
+        "CapHeight": {
+          "int": 587
+        },
+        "Descent": {
+          "int": -220
+        },
+        "Flags": {
+          "int": 96
+        },
+        "FontBBox": {
+          "array": [
+            {
+              "int": -155
+            },
+            {
+              "int": -285
+            },
+            {
+              "int": 1212
+            },
+            {
+              "int": 985
+            }
+          ]
+        },
+        "FontFile2": {
+          "ref": "47 0"
+        },
+        "FontName": {
+          "name": "AVREHH+CrimsonPro-Italic"
+        },
+        "ItalicAngle": {
+          "int": -12
+        },
+        "StemV": {
+          "int": 80
+        },
+        "XHeight": {
+          "int": 425
+        }
+      }
+    },
+    "49 0": {
+      "stream": {
+        "dict": {
+          "Length": {
+            "int": 762
+          }
+        },
+        "raw_length": 762,
+        "filters": [],
+        "decoded": {
+          "length": 762,
+          "sha256": "54ef34fc7df73d04c468c08e310571b015ba6f8d61f95ab050564f20ac3a61cc",
+          "preview_utf8": "/CIDInit /ProcSet findresource begin\n12 dict begin\nbegincmap\n/CIDSystemInfo << /…"
+        }
+      }
+    },
+    "50 0": {
+      "dict": {
+        "Type": {
+          "name": "Font"
+        },
+        "BaseFont": {
+          "name": "AVREHH+CrimsonPro-Italic"
+        },
+        "CIDSystemInfo": {
+          "dict": {
+            "Ordering": {
+              "text": "Identity"
+            },
+            "Registry": {
+              "text": "Adobe"
+            },
+            "Supplement": {
+              "int": 0
+            }
+          }
+        },
+        "CIDToGIDMap": {
+          "name": "Identity"
+        },
+        "FontDescriptor": {
+          "ref": "48 0"
+        },
+        "Subtype": {
+          "name": "CIDFontType2"
+        },
+        "W": {
+          "array": [
+            {
+              "int": 0
+            },
+            {
+              "array": [
+                {
+                  "int": 500
+                },
+                {
+                  "real": 568.359375
+                }
+              ]
+            },
+            {
+              "int": 30
+            },
+            {
+              "array": [
+                {
+                  "real": 589.84375
+                }
+              ]
+            },
+            {
+              "int": 37
+            },
+            {
+              "array": [
+                {
+                  "real": 666.015625
+                }
+              ]
+            },
+            {
+              "int": 112
+            },
+            {
+              "array": [
+                {
+                  "real": 830.078125
+                }
+              ]
+            },
+            {
+              "int": 114
+            },
+            {
+              "array": [
+                {
+                  "real": 658.203125
+                }
+              ]
+            },
+            {
+              "int": 160
+            },
+            {
+              "array": [
+                {
+                  "real": 501.953125
+                }
+              ]
+            },
+            {
+              "int": 184
+            },
+            {
+              "array": [
+                {
+                  "real": 543.9453125
+                }
+              ]
+            },
+            {
+              "int": 214
+            },
+            {
+              "array": [
+                {
+                  "real": 571.2890625
+                }
+              ]
+            },
+            {
+              "int": 237
+            },
+            {
+              "array": [
+                {
+                  "real": 470.703125
+                }
+              ]
+            },
+            {
+              "int": 265
+            },
+            {
+              "array": [
+                {
+                  "real": 444.3359375
+                },
+                {
+                  "real": 351.5625
+                }
+              ]
+            },
+            {
+              "int": 273
+            },
+            {
+              "array": [
+                {
+                  "real": 470.703125
+                }
+              ]
+            },
+            {
+              "int": 280
+            },
+            {
+              "array": [
+                {
+                  "real": 378.90625
+                }
+              ]
+            },
+            {
+              "int": 304
+            },
+            {
+              "array": [
+                {
+                  "real": 257.8125
+                },
+                {
+                  "real": 445.3125
+                }
+              ]
+            },
+            {
+              "int": 312
+            },
+            {
+              "array": [
+                {
+                  "real": 481.4453125
+                }
+              ]
+            },
+            {
+              "int": 317
+            },
+            {
+              "array": [
+                {
+                  "real": 270.5078125
+                }
+              ]
+            },
+            {
+              "int": 337
+            },
+            {
+              "array": [
+                {
+                  "real": 436.5234375
+                }
+              ]
+            },
+            {
+              "int": 340
+            },
+            {
+              "array": [
+                {
+                  "real": 244.140625
+                }
+              ]
+            },
+            {
+              "int": 349
+            },
+            {
+              "array": [
+                {
+                  "real": 731.4453125
+                }
+              ]
+            },
+            {
+              "int": 351
+            },
+            {
+              "array": [
+                {
+                  "real": 505.859375
+                }
+              ]
+            },
+            {
+              "int": 362
+            },
+            {
+              "array": [
+                {
+                  "real": 426.7578125
+                }
+              ]
+            },
+            {
+              "int": 397
+            },
+            {
+              "array": [
+                {
+                  "real": 475.5859375
+                }
+              ]
+            },
+            {
+              "int": 400
+            },
+            {
+              "array": [
+                {
+                  "real": 348.6328125
+                }
+              ]
+            },
+            {
+              "int": 408
+            },
+            {
+              "array": [
+                {
+                  "real": 308.59375
+                }
+              ]
+            },
+            {
+              "int": 420
+            },
+            {
+              "array": [
+                {
+                  "real": 294.921875
+                }
+              ]
+            },
+            {
+              "int": 428
+            },
+            {
+              "array": [
+                {
+                  "int": 500
+                }
+              ]
+            },
+            {
+              "int": 452
+            },
+            {
+              "array": [
+                {
+                  "real": 638.671875
+                }
+              ]
+            },
+            {
+              "int": 458
+            },
+            {
+              "array": [
+                {
+                  "real": 417.96875
+                }
+              ]
+            },
+            {
+              "int": 576
+            },
+            {
+              "array": [
+                {
+                  "real": 226.5625
+                },
+                {
+                  "real": 226.5625
+                }
+              ]
+            },
+            {
+              "int": 601
+            },
+            {
+              "array": [
+                {
+                  "real": 488.28125
+                }
+              ]
+            },
+            {
+              "int": 624
+            },
+            {
+              "array": [
+                {
+                  "real": 187.5
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "51 0": {
+      "stream": {
+        "dict": {
+          "Filter": {
+            "name": "FlateDecode"
+          },
+          "Length": {
+            "int": 1677
+          },
+          "Length1": {
+            "int": 6072
+          }
+        },
+        "raw_length": 1677,
+        "filters": [
+          "FlateDecode"
+        ],
+        "decoded": {
+          "length": 6072,
+          "sha256": "ae26f0eb05cde76698aedc3612f333257d4cc1bfbdd15d27b4ad7fbed784892d"
+        }
+      }
+    },
+    "52 0": {
+      "dict": {
+        "Type": {
+          "name": "FontDescriptor"
+        },
+        "Ascent": {
+          "int": 1050
+        },
+        "CapHeight": {
+          "int": 695
+        },
+        "Descent": {
+          "int": -250
+        },
+        "Flags": {
+          "int": 33
+        },
+        "FontBBox": {
+          "array": [
+            {
+              "int": -9
+            },
+            {
+              "int": -250
+            },
+            {
+              "int": 578
+            },
+            {
+              "int": 1050
+            }
+          ]
+        },
+        "FontFile2": {
+          "ref": "51 0"
+        },
+        "FontName": {
+          "name": "JYZTRN+CamingoCode-Bold"
+        },
+        "ItalicAngle": {
+          "int": 0
+        },
+        "StemV": {
+          "int": 140
+        },
+        "XHeight": {
+          "int": 495
+        }
+      }
+    },
+    "53 0": {
+      "stream": {
+        "dict": {
+          "Length": {
+            "int": 371
+          }
+        },
+        "raw_length": 371,
+        "filters": [],
+        "decoded": {
+          "length": 371,
+          "sha256": "30d050b1587e0324b8a9bea13f37895c9aa7ef6dfb90a3b6a8303554bb5af055",
+          "preview_utf8": "/CIDInit /ProcSet findresource begin\n12 dict begin\nbegincmap\n/CIDSystemInfo << /…"
+        }
+      }
+    },
+    "54 0": {
+      "dict": {
+        "Type": {
+          "name": "Font"
+        },
+        "BaseFont": {
+          "name": "JYZTRN+CamingoCode-Bold"
+        },
+        "CIDSystemInfo": {
+          "dict": {
+            "Ordering": {
+              "text": "Identity"
+            },
+            "Registry": {
+              "text": "Adobe"
+            },
+            "Supplement": {
+              "int": 0
+            }
+          }
+        },
+        "CIDToGIDMap": {
+          "name": "Identity"
+        },
+        "FontDescriptor": {
+          "ref": "52 0"
+        },
+        "Subtype": {
+          "name": "CIDFontType2"
+        },
+        "W": {
+          "array": [
+            {
+              "int": 0
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 42
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 73
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 121
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "55 0": {
+      "stream": {
+        "dict": {
+          "Filter": {
+            "name": "FlateDecode"
+          },
+          "Length": {
+            "int": 7654
+          },
+          "Length1": {
+            "int": 17468
+          }
+        },
+        "raw_length": 7654,
+        "filters": [
+          "FlateDecode"
+        ],
+        "decoded": {
+          "length": 17468,
+          "sha256": "3c1742e2fad46b9b3a5df1ea5b25db87d6dd07d5d39cb59c07febd7320f9be9f"
+        }
+      }
+    },
+    "56 0": {
+      "dict": {
+        "Type": {
+          "name": "FontDescriptor"
+        },
+        "Ascent": {
+          "int": 1050
+        },
+        "CapHeight": {
+          "int": 695
+        },
+        "Descent": {
+          "int": -250
+        },
+        "Flags": {
+          "int": 33
+        },
+        "FontBBox": {
+          "array": [
+            {
+              "int": -2
+            },
+            {
+              "int": -250
+            },
+            {
+              "int": 578
+            },
+            {
+              "int": 1050
+            }
+          ]
+        },
+        "FontFile2": {
+          "ref": "55 0"
+        },
+        "FontName": {
+          "name": "YCXYQB+CamingoCode-Regular"
+        },
+        "ItalicAngle": {
+          "int": 0
+        },
+        "StemV": {
+          "int": 80
+        },
+        "XHeight": {
+          "int": 490
+        }
+      }
+    },
+    "57 0": {
+      "stream": {
+        "dict": {
+          "Length": {
+            "int": 840
+          }
+        },
+        "raw_length": 840,
+        "filters": [],
+        "decoded": {
+          "length": 840,
+          "sha256": "7690a81413d655194a93216ada14d5ccef27866806a9d24cdca14a068ee72b99",
+          "preview_utf8": "/CIDInit /ProcSet findresource begin\n12 dict begin\nbegincmap\n/CIDSystemInfo << /…"
+        }
+      }
+    },
+    "58 0": {
+      "dict": {
+        "Type": {
+          "name": "Font"
+        },
+        "BaseFont": {
+          "name": "YCXYQB+CamingoCode-Regular"
+        },
+        "CIDSystemInfo": {
+          "dict": {
+            "Ordering": {
+              "text": "Identity"
+            },
+            "Registry": {
+              "text": "Adobe"
+            },
+            "Supplement": {
+              "int": 0
+            }
+          }
+        },
+        "CIDToGIDMap": {
+          "name": "Identity"
+        },
+        "FontDescriptor": {
+          "ref": "56 0"
+        },
+        "Subtype": {
+          "name": "CIDFontType2"
+        },
+        "W": {
+          "array": [
+            {
+              "int": 0
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 3
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 5
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 21
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 27
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 31
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 41
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                },
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 49
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 53
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 69
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 73
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 79
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                },
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 88
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 102
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 105
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 109
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 116
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 121
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 134
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 137
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 146
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 162
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 168
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 182
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 190
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 194
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 211
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 217
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 239
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 242
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 246
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 253
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 258
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 315
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 320
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 348
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                }
+              ]
+            },
+            {
+              "int": 369
+            },
+            {
+              "array": [
+                {
+                  "int": 550
+                },
+                {
+                  "int": 550
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "59 0": {
+      "dict": {
+        "Author": {
+          "text": "glu demo"
+        },
+        "CreationDate": {
+          "text": "D:20260511113125+02'00'"
+        },
+        "Creator": {
+          "text": "boxesandglue.dev"
+        },
+        "Producer": {
+          "text": "boxesandglue.dev"
+        },
+        "Title": {
+          "text": "Markdown to PDF/UA with glu"
+        }
+      }
+    }
+  }
+}
