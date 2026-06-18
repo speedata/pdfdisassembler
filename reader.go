@@ -464,3 +464,59 @@ func (r *Reader) DecodeStream(obj Object) ([]byte, error) {
 	}
 	return s.Content()
 }
+
+const maxNameTreeDepth = 1000
+
+// EmbeddedFiles returns the document's embedded files (PDF attachments) from
+// the catalog's EmbeddedFiles name tree, in tree order. Returns nil when there
+// are none.
+func (r *Reader) EmbeddedFiles() []EmbeddedFile {
+	cat, err := r.Catalog()
+	if err != nil {
+		return nil
+	}
+	names, ok := cat.Dict("Names")
+	if !ok {
+		return nil
+	}
+	root, ok := names.Dict("EmbeddedFiles")
+	if !ok {
+		return nil
+	}
+	var out []EmbeddedFile
+	r.walkNameTree(root, map[Reference]struct{}{}, 0, &out)
+	return out
+}
+
+// walkNameTree collects (name, /Filespec) pairs from a name-tree node. seen
+// records already-visited /Kids references and depth bounds the descent, so a
+// cyclic or pathologically deep /Kids graph can't loop or overflow the stack.
+func (r *Reader) walkNameTree(node *Dict, seen map[Reference]struct{}, depth int, out *[]EmbeddedFile) {
+	if node == nil || depth > maxNameTreeDepth {
+		return
+	}
+	if kids, ok := node.Array("Kids"); ok {
+		for _, kid := range kids {
+			if ref, ok := kid.(Reference); ok {
+				if _, dup := seen[ref]; dup {
+					continue
+				}
+				seen[ref] = struct{}{}
+			}
+			if child, err := r.ResolveDict(kid); err == nil {
+				r.walkNameTree(child, seen, depth+1, out)
+			}
+		}
+	}
+	if entries, ok := node.Array("Names"); ok {
+		for i := 0; i+1 < len(entries); i += 2 {
+			name, ok := entries[i].(String)
+			if !ok {
+				continue
+			}
+			if spec, err := r.ResolveDict(entries[i+1]); err == nil {
+				*out = append(*out, EmbeddedFile{Name: string(name), Spec: spec})
+			}
+		}
+	}
+}
