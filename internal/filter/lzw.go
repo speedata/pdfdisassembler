@@ -59,6 +59,9 @@ func decodeLZW(in []byte, p Params) ([]byte, error) {
 			return nil, fmt.Errorf("LZWDecode: invalid code %d at width %d", code, codeWidth)
 		}
 		out = append(out, entry...)
+		if p.MaxOutput > 0 && int64(len(out)) > p.MaxOutput {
+			return nil, fmt.Errorf("LZWDecode: decoded output exceeds limit of %d bytes (possible decompression bomb)", p.MaxOutput)
+		}
 		if prev >= 0 && len(dict) < 4096 {
 			pe := dict[prev]
 			ne := make([]byte, len(pe)+1)

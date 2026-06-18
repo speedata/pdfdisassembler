@@ -31,6 +31,8 @@ type Params struct {
 	BitsPerComponent int
 	// LZWDecode early-change flag.
 	EarlyChange int
+	// MaxOutput caps decoded bytes per filter; <= 0 means unlimited.
+	MaxOutput int64
 }
 
 // Decode applies the named filter to in.
@@ -45,7 +47,7 @@ func Decode(name string, in []byte, p Params) ([]byte, error) {
 	case "ASCIIHexDecode", "AHx":
 		return decodeASCIIHex(in)
 	case "RunLengthDecode", "RL":
-		return decodeRunLength(in)
+		return decodeRunLength(in, p.MaxOutput)
 	}
 	return nil, ErrUnsupported{Name: name}
 }
@@ -70,7 +72,7 @@ func decodeFlate(in []byte, p Params) ([]byte, error) {
 		return nil, fmt.Errorf("FlateDecode: %w", err)
 	}
 	defer zr.Close()
-	dec, err := io.ReadAll(zr)
+	dec, err := readAllLimited(zr, p.MaxOutput)
 	if err != nil {
 		return nil, fmt.Errorf("FlateDecode: %w", err)
 	}
@@ -78,6 +80,22 @@ func decodeFlate(in []byte, p Params) ([]byte, error) {
 		return applyPredictor(dec, p)
 	}
 	return dec, nil
+}
+
+// readAllLimited is io.ReadAll that errors once r yields more than max bytes.
+// max <= 0 disables the limit.
+func readAllLimited(r io.Reader, max int64) ([]byte, error) {
+	if max <= 0 {
+		return io.ReadAll(r)
+	}
+	out, err := io.ReadAll(io.LimitReader(r, max+1)) // +1 to tell "== max" from "> max"
+	if err != nil {
+		return nil, err
+	}
+	if int64(len(out)) > max {
+		return nil, fmt.Errorf("decoded output exceeds %d-byte limit (possible decompression bomb)", max)
+	}
+	return out, nil
 }
 
 func decodeASCII85(in []byte) ([]byte, error) {
@@ -164,7 +182,7 @@ func decodeASCIIHex(in []byte) ([]byte, error) {
 	return out, nil
 }
 
-func decodeRunLength(in []byte) ([]byte, error) {
+func decodeRunLength(in []byte, maxOut int64) ([]byte, error) {
 	var out []byte
 	for i := 0; i < len(in); {
 		b := in[i]
@@ -188,6 +206,9 @@ func decodeRunLength(in []byte) ([]byte, error) {
 			i++
 		default: // b == 128: EOD
 			return out, nil
+		}
+		if maxOut > 0 && int64(len(out)) > maxOut {
+			return nil, fmt.Errorf("RunLengthDecode: decoded output exceeds limit of %d bytes", maxOut)
 		}
 	}
 	return out, nil

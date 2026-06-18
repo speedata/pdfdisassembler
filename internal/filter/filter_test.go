@@ -84,6 +84,50 @@ func TestFlatePNGPredictor(t *testing.T) {
 	}
 }
 
+func TestFlateBombRejected(t *testing.T) {
+	// 1 MiB of zeros (compresses to ~1 KB) against a 4 KB cap.
+	var buf bytes.Buffer
+	zw := zlib.NewWriter(&buf)
+	zw.Write(make([]byte, 1<<20))
+	zw.Close()
+	if _, err := Decode("FlateDecode", buf.Bytes(), Params{MaxOutput: 4096}); err == nil {
+		t.Fatal("expected error for output exceeding MaxOutput, got nil")
+	}
+}
+
+func TestFlateUnderLimit(t *testing.T) {
+	var buf bytes.Buffer
+	zw := zlib.NewWriter(&buf)
+	zw.Write([]byte("hello flate"))
+	zw.Close()
+	out, err := Decode("FlateDecode", buf.Bytes(), Params{MaxOutput: 1 << 20})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(out) != "hello flate" {
+		t.Fatalf("got %q", out)
+	}
+}
+
+func TestRunLengthBombRejected(t *testing.T) {
+	// {129,'X'} expands to 257-129 = 128 copies of 'X', past the 64-byte cap.
+	if _, err := Decode("RunLengthDecode", []byte{129, 'X'}, Params{MaxOutput: 64}); err == nil {
+		t.Fatal("expected error for output exceeding MaxOutput, got nil")
+	}
+}
+
+func TestLZWDecodeAndBombRejected(t *testing.T) {
+	// PDF-LZW (9-bit, MSB-first) codes 65,66,257 -> "AB" then EOD.
+	in := []byte{0x20, 0x90, 0xA0, 0x20}
+	out, err := Decode("LZWDecode", in, Params{})
+	if err != nil || string(out) != "AB" {
+		t.Fatalf("baseline decode: out=%q err=%v", out, err)
+	}
+	if _, err := Decode("LZWDecode", in, Params{MaxOutput: 1}); err == nil {
+		t.Fatal("expected error for output exceeding MaxOutput, got nil")
+	}
+}
+
 func TestImageFilterRejected(t *testing.T) {
 	if !IsImageFilter("DCTDecode") {
 		t.Fatal("DCTDecode should be image filter")

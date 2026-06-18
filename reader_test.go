@@ -104,14 +104,13 @@ func TestObjectsIterator(t *testing.T) {
 	}
 }
 
-// buildPDFWithStream embeds a FlateDecode stream so DecodeStream can be
-// exercised.
-func buildPDFWithStream(t *testing.T) []byte {
+// buildPDFWithStream embeds payload as a FlateDecode stream (obj 3) so
+// DecodeStream can be exercised.
+func buildPDFWithStream(t *testing.T, payload []byte) []byte {
 	t.Helper()
-	const payload = "Hello, stream!"
 	var zbuf bytes.Buffer
 	zw := zlib.NewWriter(&zbuf)
-	zw.Write([]byte(payload))
+	zw.Write(payload)
 	zw.Close()
 	zdata := zbuf.Bytes()
 
@@ -144,7 +143,7 @@ func buildPDFWithStream(t *testing.T) []byte {
 }
 
 func TestDecodeStream(t *testing.T) {
-	data := buildPDFWithStream(t)
+	data := buildPDFWithStream(t, []byte("Hello, stream!"))
 	r, err := Open(bytes.NewReader(data))
 	if err != nil {
 		t.Fatalf("Open: %v", err)
@@ -157,6 +156,65 @@ func TestDecodeStream(t *testing.T) {
 	}
 	if string(content) != "Hello, stream!" {
 		t.Fatalf("content %q", content)
+	}
+}
+
+func TestStreamSizeLimitEnforced(t *testing.T) {
+	// obj 3 decompresses to 2 MiB; the 64 KiB cap must reject it.
+	data := buildPDFWithStream(t, make([]byte, 2<<20))
+	r, err := Open(bytes.NewReader(data))
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	defer r.Close()
+
+	r.MaxStreamSize = 64 << 10
+	if _, err := r.DecodeStream(Reference{Number: 3, Generation: 0}); err == nil {
+		t.Fatal("expected error decoding stream larger than MaxStreamSize, got nil")
+	}
+}
+
+func TestWithMaxStreamSizeOption(t *testing.T) {
+	data := buildPDFWithStream(t, make([]byte, 2<<20))
+	r, err := Open(bytes.NewReader(data), WithMaxStreamSize(64<<10))
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	defer r.Close()
+	if r.MaxStreamSize != 64<<10 {
+		t.Fatalf("MaxStreamSize = %d, want %d", r.MaxStreamSize, 64<<10)
+	}
+	if _, err := r.DecodeStream(Reference{Number: 3, Generation: 0}); err == nil {
+		t.Fatal("expected error: stream exceeds the option-set cap")
+	}
+}
+
+func TestWithMaxStreamSizeDisable(t *testing.T) {
+	data := buildPDFWithStream(t, make([]byte, 2<<20))
+	r, err := Open(bytes.NewReader(data), WithMaxStreamSize(0))
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	defer r.Close()
+	out, err := r.DecodeStream(Reference{Number: 3, Generation: 0})
+	if err != nil {
+		t.Fatalf("DecodeStream with cap disabled: %v", err)
+	}
+	if len(out) != 2<<20 {
+		t.Fatalf("decoded %d bytes, want %d", len(out), 2<<20)
+	}
+}
+
+func TestDefaultMaxStreamSizeSet(t *testing.T) {
+	// Open must install a finite default so Open-time decodes are bounded.
+	data := buildMinimalPDF(t)
+	r, err := Open(bytes.NewReader(data))
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	defer r.Close()
+	if r.MaxStreamSize != DefaultMaxStreamSize {
+		t.Fatalf("MaxStreamSize = %d, want default %d", r.MaxStreamSize, DefaultMaxStreamSize)
 	}
 }
 
