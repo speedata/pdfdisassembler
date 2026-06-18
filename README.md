@@ -2,11 +2,15 @@
 
 [![Test](https://github.com/speedata/pdfdisassembler/actions/workflows/test.yml/badge.svg)](https://github.com/speedata/pdfdisassembler/actions/workflows/test.yml)
 [![Coverage](https://github.com/speedata/pdfdisassembler/raw/badges/.badges/main/coverage.svg)](https://github.com/speedata/pdfdisassembler/actions/workflows/test.yml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/speedata/pdfdisassembler.svg)](https://pkg.go.dev/github.com/speedata/pdfdisassembler)
+
 
 A focused, read-only PDF parser for Go. Built for tooling that **inspects**
 PDFs — accessibility checkers, validators, debuggers — without dragging in
 the writing, optimisation, signing and image-rendering machinery that
 general-purpose PDF libraries carry.
+
+Full API documentation: <https://pkg.go.dev/github.com/speedata/pdfdisassembler>
 
 ## Status
 
@@ -35,6 +39,8 @@ verification, content-stream graphics-state interpretation, LTV.
 
 ## Usage
 
+Open a file and read top-level metadata:
+
 ```go
 import "github.com/speedata/pdfdisassembler"
 
@@ -48,6 +54,36 @@ fmt.Println("PDF version:", r.Version())
 info := r.DocumentInfo()
 fmt.Println("Title:", info.Title)
 ```
+
+Walk every live indirect object and decode any streams that carry one of
+the supported filters:
+
+```go
+r, err := pdfdisassembler.OpenFile("doc.pdf")
+if err != nil {
+    return err
+}
+defer r.Close()
+
+for entry := range r.Objects() {
+    s, ok := entry.Object.(*pdfdisassembler.Stream)
+    if !ok {
+        continue
+    }
+    ref := entry.Reference
+    data, err := r.DecodeStream(ref)
+    if err != nil {
+        fmt.Printf("%d %d R: %v\n", ref.Number, ref.Generation, err)
+        continue
+    }
+    fmt.Printf("%d %d R: %d bytes raw, %d bytes decoded\n",
+        ref.Number, ref.Generation, s.RawLength(), len(data))
+}
+```
+
+More complete examples live under [`examples/`](examples): `inspect`
+prints a summary of a PDF, `structtree` walks the `/StructTreeRoot` as a
+starting point for accessibility tooling.
 
 ## Testing
 
