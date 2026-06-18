@@ -29,10 +29,12 @@ jobs:
       - name: Run tests
         run: go test -race -coverprofile=cover.out ./...
 
-      # On main: write the badge to the `badges` orphan branch (created on first run).
+      # On main: write the badge to the pre-created `badges` orphan branch.
       # Elsewhere: git-token is empty, so this only reports coverage — no push, no gate.
+      # Docker action (prebuilt image) — avoids compiling the tool, which needs a
+      # newer Go than this module's go.mod pins.
       - name: Coverage badge
-        uses: vladopajic/go-test-coverage/action/source@v2
+        uses: vladopajic/go-test-coverage@v2
         with:
           profile: cover.out
           git-token: ${{ github.ref_name == 'main' && secrets.GITHUB_TOKEN || '' }}
