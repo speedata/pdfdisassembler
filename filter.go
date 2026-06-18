@@ -40,7 +40,9 @@ func (r *Reader) applyFilters(s *Stream, raw []byte, encrypted bool) ([]byte, er
 		if filter.IsImageFilter(name) {
 			return nil, fmt.Errorf("pdfdisassembler: stream %d %d R uses image-only filter %q (not decoded)", s.objNumber, s.objGeneration, name)
 		}
-		out, err := filter.Decode(name, data, params[i])
+		p := params[i]
+		p.MaxOutput = r.MaxStreamSize
+		out, err := filter.Decode(name, data, p)
 		if err != nil {
 			return nil, fmt.Errorf("pdfdisassembler: stream %d %d R filter %q: %w", s.objNumber, s.objGeneration, name, err)
 		}

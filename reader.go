@@ -12,6 +12,18 @@ import (
 	"github.com/speedata/pdfdisassembler/internal/lex"
 )
 
+// DefaultMaxStreamSize is the per-stream decoded-size cap Open uses by default.
+const DefaultMaxStreamSize int64 = 16 << 20
+
+// Option configures a Reader at Open time.
+type Option func(*Reader)
+
+// WithMaxStreamSize sets the per-stream decoded-size cap; n <= 0 disables it.
+// Applied before parsing, so it also bounds streams decoded during Open.
+func WithMaxStreamSize(n int64) Option {
+	return func(r *Reader) { r.MaxStreamSize = n }
+}
+
 // Reader is a parsed PDF document. It is not safe for concurrent use.
 type Reader struct {
 	src      io.ReadSeeker
@@ -23,6 +35,10 @@ type Reader struct {
 	catalog  *Dict
 	info     *Dict
 	infoLoad bool
+
+	// MaxStreamSize caps each stream's decoded size; <= 0 disables it. Setting
+	// it after Open misses Open-time (xref/object) streams; use WithMaxStreamSize.
+	MaxStreamSize int64
 
 	// Encryption.
 	encrypt *encryptCtx
@@ -46,7 +62,7 @@ type xrefEntry struct {
 
 // Open parses a PDF from rs. rs must remain valid for the lifetime of the
 // returned Reader.
-func Open(rs io.ReadSeeker) (*Reader, error) {
+func Open(rs io.ReadSeeker, opts ...Option) (*Reader, error) {
 	if _, err := rs.Seek(0, io.SeekStart); err != nil {
 		return nil, fmt.Errorf("pdfdisassembler: seek: %w", err)
 	}
@@ -55,11 +71,15 @@ func Open(rs io.ReadSeeker) (*Reader, error) {
 		return nil, fmt.Errorf("pdfdisassembler: read: %w", err)
 	}
 	r := &Reader{
-		src:          rs,
-		buf:          buf,
-		xref:         map[Reference]xrefEntry{},
-		objCache:     map[Reference]Object{},
-		resolveStack: map[Reference]struct{}{},
+		src:           rs,
+		buf:           buf,
+		xref:          map[Reference]xrefEntry{},
+		objCache:      map[Reference]Object{},
+		resolveStack:  map[Reference]struct{}{},
+		MaxStreamSize: DefaultMaxStreamSize,
+	}
+	for _, opt := range opts {
+		opt(r)
 	}
 	if err := r.parseHeader(); err != nil {
 		return nil, err
@@ -75,12 +95,12 @@ func Open(rs io.ReadSeeker) (*Reader, error) {
 
 // OpenFile opens path and parses it as a PDF. The file stays open until
 // Reader.Close is called.
-func OpenFile(path string) (*Reader, error) {
+func OpenFile(path string, opts ...Option) (*Reader, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
-	r, err := Open(f)
+	r, err := Open(f, opts...)
 	if err != nil {
 		f.Close()
 		return nil, err
