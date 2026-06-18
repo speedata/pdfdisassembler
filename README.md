@@ -1,5 +1,8 @@
 # pdfdisassembler
 
+[![Test](https://github.com/speedata/pdfdisassembler/actions/workflows/test.yml/badge.svg)](https://github.com/speedata/pdfdisassembler/actions/workflows/test.yml)
+[![Coverage](https://github.com/speedata/pdfdisassembler/raw/badges/.badges/main/coverage.svg)](https://github.com/speedata/pdfdisassembler/actions/workflows/test.yml)
+
 A focused, read-only PDF parser for Go. Built for tooling that **inspects**
 PDFs — accessibility checkers, validators, debuggers — without dragging in
 the writing, optimisation, signing and image-rendering machinery that
