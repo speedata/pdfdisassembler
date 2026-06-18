@@ -313,6 +313,9 @@ func (r *Reader) readXrefStreamAt(offset int64) (int64, error) {
 		if !ok {
 			return 0, fmt.Errorf("xref stream: /W[%d] not integer", i)
 		}
+		if n < 0 {
+			return 0, fmt.Errorf("xref stream: negative /W[%d] = %d", i, n)
+		}
 		w[i] = int(n)
 	}
 	rowSize := 0
@@ -422,6 +425,14 @@ func (r *Reader) readCompressedObject(objStmNum, idx int, expect Reference) (Obj
 	content, err := stm.Content()
 	if err != nil {
 		return nil, err
+	}
+	// /First and /N are attacker-controlled; bound them against the decoded
+	// length — no ObjStm holds more entries (or a longer header) than bytes.
+	if first < 0 || first > int64(len(content)) {
+		return nil, fmt.Errorf("ObjStm %d: /First %d out of range for %d-byte stream", objStmNum, first, len(content))
+	}
+	if n < 0 || n > int64(len(content)) {
+		return nil, fmt.Errorf("ObjStm %d: implausible /N %d for %d-byte stream", objStmNum, n, len(content))
 	}
 
 	// Read N pairs of (objNum, offset) from the header section.

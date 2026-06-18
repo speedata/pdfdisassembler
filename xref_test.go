@@ -102,3 +102,114 @@ func TestXrefRecovery(t *testing.T) {
 		t.Fatalf("/Type %q ok=%v", n, ok)
 	}
 }
+
+// buildXrefStreamPDFWithW builds a PDF whose cross-reference stream (obj 3)
+// declares the given /W array and carries content as its (unfiltered) row data.
+func buildXrefStreamPDFWithW(t *testing.T, wArray, content string) []byte {
+	t.Helper()
+	var buf bytes.Buffer
+	off := map[int]int{}
+	w := func(n int, body string) {
+		off[n] = buf.Len()
+		fmt.Fprintf(&buf, "%d 0 obj\n%s\nendobj\n", n, body)
+	}
+	buf.WriteString("%PDF-1.5\n%\xe2\xe3\xcf\xd3\n")
+	w(1, "<< /Type /Catalog /Pages 2 0 R >>")
+	w(2, "<< /Type /Pages /Kids [] /Count 0 >>")
+	off[3] = buf.Len()
+	fmt.Fprintf(&buf, "3 0 obj\n<< /Type /XRef /W %s /Size 1 /Root 1 0 R /Length %d >>\nstream\n",
+		wArray, len(content))
+	buf.WriteString(content)
+	buf.WriteString("\nendstream\nendobj\n")
+	fmt.Fprintf(&buf, "startxref\n%d\n%%%%EOF\n", off[3])
+	return buf.Bytes()
+}
+
+// buildObjStmPDF builds a PDF whose catalog (obj 1) lives inside an object
+// stream (obj 3), reached via a type-2 entry in the xref stream (obj 2). The
+// ObjStm dict declares declaredN / declaredFirst, which the caller can set to
+// hostile values; the actual stream is always "1 0 " + catalogBody.
+func buildObjStmPDF(t *testing.T, declaredN, declaredFirst int64, catalogBody string) []byte {
+	t.Helper()
+	objstm := "1 0 " + catalogBody // header "1 0 " (4 bytes), catalog at offset 4
+
+	var buf bytes.Buffer
+	buf.WriteString("%PDF-1.5\n%\xe2\xe3\xcf\xd3\n")
+
+	off3 := buf.Len()
+	fmt.Fprintf(&buf, "3 0 obj\n<< /Type /ObjStm /N %d /First %d /Length %d >>\nstream\n%s\nendstream\nendobj\n",
+		declaredN, declaredFirst, len(objstm), objstm)
+
+	off2 := buf.Len()
+	rows := []byte{
+		0x00, 0x00, 0x00, 0x00, // obj 0: free
+		0x02, 0x00, 0x03, 0x00, // obj 1: type 2 -> ObjStm 3, index 0
+		0x01, byte(off2 >> 8), byte(off2), 0x00, // obj 2: type 1 @ off2
+		0x01, byte(off3 >> 8), byte(off3), 0x00, // obj 3: type 1 @ off3
+	}
+	fmt.Fprintf(&buf, "2 0 obj\n<< /Type /XRef /W [ 1 2 1 ] /Index [ 0 4 ] /Size 4 /Root 1 0 R /Length %d >>\nstream\n",
+		len(rows))
+	buf.Write(rows)
+	buf.WriteString("\nendstream\nendobj\n")
+
+	fmt.Fprintf(&buf, "startxref\n%d\n%%%%EOF\n", off2)
+	return buf.Bytes()
+}
+
+func TestXrefStreamNegativeWidthRecovers(t *testing.T) {
+	// /W [1 -2 10]: the negative width makes the row decode slice row[1:-1].
+	// The parser must recover (not panic), leaving the catalog reachable.
+	data := buildXrefStreamPDFWithW(t, "[ 1 -2 10 ]", "123456789")
+	r, err := Open(bytes.NewReader(data))
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	defer r.Close()
+	if _, err := r.Catalog(); err != nil {
+		t.Fatalf("Catalog after recovery: %v", err)
+	}
+}
+
+// Control: a well-formed ObjStm catalog must resolve, proving the harness and
+// the type-2 path work (so the hostile cases below aren't false positives).
+func TestObjStmCatalogBaseline(t *testing.T) {
+	data := buildObjStmPDF(t, 1, 4, "<< /Type /Catalog >>")
+	r, err := Open(bytes.NewReader(data))
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	defer r.Close()
+	cat, err := r.Catalog()
+	if err != nil {
+		t.Fatalf("Catalog: %v", err)
+	}
+	if n, ok := cat.Name("Type"); !ok || n != "Catalog" {
+		t.Fatalf("/Type %q ok=%v", n, ok)
+	}
+}
+
+func TestObjStmRejectsHostileHeader(t *testing.T) {
+	// Absurd attacker-controlled /First and /N must surface as errors, not
+	// slice/make panics.
+	tests := []struct {
+		name          string
+		declaredN     int64
+		declaredFirst int64
+	}{
+		{"first beyond stream", 1, 1 << 60},
+		{"absurd N", 1 << 60, 4},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			data := buildObjStmPDF(t, tt.declaredN, tt.declaredFirst, "<< /Type /Catalog >>")
+			r, err := Open(bytes.NewReader(data))
+			if err != nil {
+				t.Fatalf("Open: %v", err)
+			}
+			defer r.Close()
+			if _, err := r.Catalog(); err == nil {
+				t.Fatal("expected an error, got nil")
+			}
+		})
+	}
+}
