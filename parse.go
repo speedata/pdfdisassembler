@@ -8,6 +8,10 @@ import (
 	"github.com/speedata/pdfdisassembler/internal/lex"
 )
 
+// maxParseDepth caps array/dict nesting so a hostile PDF can't stack-overflow
+// the recursive parser.
+const maxParseDepth = 1000
+
 // parser is a recursive descent parser over a lex.Lexer that emits direct
 // PDF Objects. It does not chase indirect references — every Reference
 // token becomes a Reference value.
@@ -15,6 +19,7 @@ type parser struct {
 	lx    *lex.Lexer
 	r     *Reader
 	queue []lex.Token
+	depth int
 }
 
 func newParser(lx *lex.Lexer, r *Reader) *parser {
@@ -135,6 +140,11 @@ func (p *parser) parseObjectFrom(tok lex.Token) (Object, error) {
 }
 
 func (p *parser) parseArray() (Array, error) {
+	p.depth++
+	defer func() { p.depth-- }()
+	if p.depth > maxParseDepth {
+		return nil, fmt.Errorf("pdfdisassembler/parse: nesting too deep (> %d)", maxParseDepth)
+	}
 	var out Array
 	for {
 		t, err := p.peek()
@@ -157,6 +167,11 @@ func (p *parser) parseArray() (Array, error) {
 }
 
 func (p *parser) parseDict() (*Dict, error) {
+	p.depth++
+	defer func() { p.depth-- }()
+	if p.depth > maxParseDepth {
+		return nil, fmt.Errorf("pdfdisassembler/parse: nesting too deep (> %d)", maxParseDepth)
+	}
 	d := newDict(p.r)
 	for {
 		t, err := p.peek()
