@@ -24,7 +24,7 @@ func (r *Reader) applyFilters(s *Stream, raw []byte, encrypted bool) ([]byte, er
 	if encrypted && r.encrypt != nil {
 		// Cross-reference streams are themselves unencrypted; callers
 		// must pass encrypted=false for those.
-		dec, err := r.encrypt.decryptStream(data, s.objNumber, s.objGeneration, s.Dict)
+		dec, err := r.encrypt.decryptStream(data, s.objNumber, s.objGeneration)
 		if err != nil {
 			return nil, fmt.Errorf("pdfdisassembler: decrypt stream %d %d R: %w", s.objNumber, s.objGeneration, err)
 		}
