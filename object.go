@@ -318,3 +318,11 @@ type DocInfo struct {
 	ModDate      time.Time
 	Custom       map[string]string
 }
+
+// EmbeddedFile is one entry from the catalog's EmbeddedFiles name tree (a PDF
+// attachment). Spec is the /Filespec dictionary; its /EF stream holds the
+// bytes.
+type EmbeddedFile struct {
+	Name string
+	Spec *Dict
+}

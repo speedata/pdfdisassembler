@@ -247,3 +247,99 @@ func TestParseDate(t *testing.T) {
 		t.Fatalf("hour %d", d.Hour())
 	}
 }
+
+// buildDictPDF puts each body in objs as object i+1 of a classical-xref PDF
+// (obj 1 is the catalog). Bodies are plain objects (no streams).
+func buildDictPDF(t *testing.T, objs []string) []byte {
+	t.Helper()
+	var buf bytes.Buffer
+	fmt.Fprint(&buf, "%PDF-1.7\n%\xE2\xE3\xCF\xD3\n")
+	offsets := make([]int, len(objs)+1)
+	for i, body := range objs {
+		offsets[i+1] = buf.Len()
+		fmt.Fprintf(&buf, "%d 0 obj\n%s\nendobj\n", i+1, body)
+	}
+	xrefOff := buf.Len()
+	fmt.Fprintf(&buf, "xref\n0 %d\n%010d %05d f \n", len(objs)+1, 0, 65535)
+	for i := 1; i <= len(objs); i++ {
+		fmt.Fprintf(&buf, "%010d %05d n \n", offsets[i], 0)
+	}
+	fmt.Fprintf(&buf, "trailer\n<< /Size %d /Root 1 0 R >>\nstartxref\n%d\n%%%%EOF\n",
+		len(objs)+1, xrefOff)
+	return buf.Bytes()
+}
+
+func TestEmbeddedFiles(t *testing.T) {
+	data := buildDictPDF(t, []string{
+		"<< /Type /Catalog /Pages 2 0 R /Names << /EmbeddedFiles 3 0 R >> >>",
+		"<< /Type /Pages /Kids [] /Count 0 >>",
+		"<< /Names [ (a.xml) 4 0 R (b.xml) 5 0 R ] >>",
+		"<< /Type /Filespec /F (a.xml) >>",
+		"<< /Type /Filespec /F (b.xml) >>",
+	})
+	r, err := Open(bytes.NewReader(data))
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	defer r.Close()
+	ef := r.EmbeddedFiles()
+	if len(ef) != 2 {
+		t.Fatalf("got %d files, want 2", len(ef))
+	}
+	if ef[0].Name != "a.xml" || ef[1].Name != "b.xml" {
+		t.Fatalf("names %q, %q", ef[0].Name, ef[1].Name)
+	}
+	if f, ok := ef[0].Spec.String("F"); !ok || f != "a.xml" {
+		t.Fatalf("spec /F %q ok=%v", f, ok)
+	}
+}
+
+func TestEmbeddedFilesNestedKids(t *testing.T) {
+	data := buildDictPDF(t, []string{
+		"<< /Type /Catalog /Pages 2 0 R /Names << /EmbeddedFiles 3 0 R >> >>",
+		"<< /Type /Pages /Kids [] /Count 0 >>",
+		"<< /Kids [ 4 0 R ] >>",
+		"<< /Names [ (a.xml) 5 0 R ] >>",
+		"<< /Type /Filespec /F (a.xml) >>",
+	})
+	r, err := Open(bytes.NewReader(data))
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	defer r.Close()
+	if ef := r.EmbeddedFiles(); len(ef) != 1 || ef[0].Name != "a.xml" {
+		t.Fatalf("got %+v, want one a.xml", ef)
+	}
+}
+
+func TestEmbeddedFilesCyclicKidsTerminates(t *testing.T) {
+	// obj 3's /Kids references itself; the walk must terminate, not overflow.
+	data := buildDictPDF(t, []string{
+		"<< /Type /Catalog /Pages 2 0 R /Names << /EmbeddedFiles 3 0 R >> >>",
+		"<< /Type /Pages /Kids [] /Count 0 >>",
+		"<< /Kids [ 3 0 R ] >>",
+	})
+	r, err := Open(bytes.NewReader(data))
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	defer r.Close()
+	if ef := r.EmbeddedFiles(); len(ef) != 0 {
+		t.Fatalf("got %d files, want 0", len(ef))
+	}
+}
+
+func TestEmbeddedFilesNone(t *testing.T) {
+	data := buildDictPDF(t, []string{
+		"<< /Type /Catalog /Pages 2 0 R >>",
+		"<< /Type /Pages /Kids [] /Count 0 >>",
+	})
+	r, err := Open(bytes.NewReader(data))
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	defer r.Close()
+	if ef := r.EmbeddedFiles(); ef != nil {
+		t.Fatalf("got %+v, want nil", ef)
+	}
+}
