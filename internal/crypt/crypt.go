@@ -264,6 +264,11 @@ func computeRC4Key(p Params, password []byte) ([]byte, error) {
 	if keyLen == 0 {
 		keyLen = 5 // V1 default
 	}
+	// /Length is attacker-controlled; the key is sliced from a 16-byte MD5
+	// digest, so anything outside [1, md5.Size] would slice/make out of range.
+	if keyLen < 1 || keyLen > md5.Size {
+		return nil, fmt.Errorf("crypt: invalid key length %d bits", p.Length)
+	}
 	if p.R >= 3 {
 		for i := 0; i < 50; i++ {
 			s := md5.Sum(sum[:keyLen])
