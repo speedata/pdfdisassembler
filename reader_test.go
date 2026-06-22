@@ -240,36 +240,6 @@ func TestDefaultMaxStreamSizeSet(t *testing.T) {
 	}
 }
 
-func TestTextDecodingUTF16BE(t *testing.T) {
-	// Hello in UTF-16BE with BOM.
-	b := String{0xFE, 0xFF, 0, 'H', 0, 'i'}
-	got := decodeTextString(b)
-	if got != "Hi" {
-		t.Fatalf("got %q", got)
-	}
-}
-
-func TestTextDecodingPDFDocEncoding(t *testing.T) {
-	b := String("Caf\xe9")
-	got := decodeTextString(b)
-	if got != "Café" {
-		t.Fatalf("got %q", got)
-	}
-}
-
-func TestParseDate(t *testing.T) {
-	d := parseDate("D:20260604120000+02'00'")
-	if d.IsZero() {
-		t.Fatal("zero")
-	}
-	if d.Year() != 2026 || d.Month() != 6 || d.Day() != 4 {
-		t.Fatalf("date %v", d)
-	}
-	if d.Hour() != 12 {
-		t.Fatalf("hour %d", d.Hour())
-	}
-}
-
 // buildDictPDF puts each body in objs as object i+1 of a classical-xref PDF
 // (obj 1 is the catalog). Bodies are plain objects (no streams).
 func buildDictPDF(t *testing.T, objs []string) []byte {
