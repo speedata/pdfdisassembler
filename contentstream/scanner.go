@@ -50,6 +50,10 @@ var ErrUnexpectedEOF = errors.New("pdfdisassembler/contentstream: unexpected EOF
 // recurse the scanner into a stack overflow.
 const maxNestDepth = 1000
 
+// maxOperands caps operands accumulated per operation (and per array/dict) so
+// a flood of operands can't pin large amounts of memory.
+const maxOperands = 100000
+
 // Next returns the next operation. At end of stream it returns io.EOF.
 // Any other error indicates malformed input; the scanner is not safe
 // to keep using after an error.
@@ -58,6 +62,9 @@ func (s *Scanner) Next() (Op, error) {
 		return Op{}, io.EOF
 	}
 	for {
+		if len(s.stack) > maxOperands {
+			return Op{}, fmt.Errorf("pdfdisassembler/contentstream: too many operands (> %d)", maxOperands)
+		}
 		tok, err := s.nextToken()
 		if err != nil {
 			return Op{}, err
@@ -160,6 +167,9 @@ func (s *Scanner) readArray() ([]Operand, error) {
 	}
 	var out []Operand
 	for {
+		if len(out) > maxOperands {
+			return nil, fmt.Errorf("pdfdisassembler/contentstream: array too large (> %d)", maxOperands)
+		}
 		tok, err := s.nextToken()
 		if err != nil {
 			return nil, err
@@ -213,6 +223,9 @@ func (s *Scanner) readDict() (Dict, error) {
 	}
 	out := Dict{}
 	for {
+		if len(out) > maxOperands {
+			return nil, fmt.Errorf("pdfdisassembler/contentstream: dict too large (> %d)", maxOperands)
+		}
 		tok, err := s.nextToken()
 		if err != nil {
 			return nil, err

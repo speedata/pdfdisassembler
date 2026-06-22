@@ -265,6 +265,21 @@ func TestModeratelyNestedArrayResolves(t *testing.T) {
 	}
 }
 
+// A flood of operands before an operator — directly or inside one array —
+// must be rejected rather than accumulated unboundedly.
+func TestScannerOperandFloodRejected(t *testing.T) {
+	for name, src := range map[string]string{
+		"bare":  strings.Repeat("1 ", 200000) + "n",
+		"array": "[" + strings.Repeat("1 ", 200000) + "] n",
+	} {
+		t.Run(name, func(t *testing.T) {
+			if _, err := contentstream.New([]byte(src)).Next(); err == nil {
+				t.Fatal("expected an operand-flood error, got nil")
+			}
+		})
+	}
+}
+
 // FuzzScanner asserts the content-stream scanner never panics: Next may error,
 // but must not crash on arbitrary input.
 func FuzzScanner(f *testing.F) {
