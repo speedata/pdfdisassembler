@@ -133,3 +133,55 @@ func TestLexerComment(t *testing.T) {
 		t.Fatalf("t3 kind %v", t3.Kind)
 	}
 }
+
+func TestReadStreamDataHostileLength(t *testing.T) {
+	const maxInt = int(^uint(0) >> 1)
+	for _, length := range []int{-1, -1000, maxInt} {
+		// Leading "\n" makes the EOL skip advance pos, so pos+length overflows.
+		l := New([]byte("\nstream body bytes"))
+		if _, err := l.ReadStreamData(length); err == nil {
+			t.Fatalf("length=%d: expected error, got nil", length)
+		}
+	}
+}
+
+func TestReadStreamDataValid(t *testing.T) {
+	l := New([]byte("\nABCDEF"))
+	out, err := l.ReadStreamData(6)
+	if err != nil {
+		t.Fatalf("ReadStreamData: %v", err)
+	}
+	if string(out) != "ABCDEF" {
+		t.Fatalf("got %q want ABCDEF", out)
+	}
+}
+
+func TestLexerTruncatedTokensError(t *testing.T) {
+	cases := map[string]string{
+		"name escape at eof":      "/AB#",
+		"name escape one digit":   "/AB#F",
+		"name escape bad hex":     "/A#GG",
+		"string backslash at eof": "(abc\\",
+		"unterminated string":     "(abc",
+		"unterminated hex":        "<48",
+		"bad hex digit":           "<4G>",
+	}
+	for name, src := range cases {
+		t.Run(name, func(t *testing.T) {
+			if _, err := New([]byte(src)).Next(); err == nil {
+				t.Fatalf("%q: expected error, got nil", src)
+			}
+		})
+	}
+}
+
+func TestLexerStringEscapes(t *testing.T) {
+	lx := New([]byte(`(\101\n\)\(end)`)) // octal 'A', newline, literal ) and (
+	tok, err := lx.Next()
+	if err != nil {
+		t.Fatalf("Next: %v", err)
+	}
+	if want := "A\n)(end"; string(tok.Bytes) != want {
+		t.Fatalf("got %q want %q", tok.Bytes, want)
+	}
+}

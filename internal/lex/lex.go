@@ -419,7 +419,9 @@ func (l *Lexer) ReadStreamData(length int) ([]byte, error) {
 	if l.pos < len(l.src) && l.src[l.pos] == '\n' {
 		l.pos++
 	}
-	if l.pos+length > len(l.src) {
+	// length is the attacker-controlled /Length; compare against the bytes
+	// remaining rather than computing l.pos+length, which can overflow.
+	if length < 0 || length > len(l.src)-l.pos {
 		return nil, ErrUnexpectedEOF
 	}
 	out := l.src[l.pos : l.pos+length]
