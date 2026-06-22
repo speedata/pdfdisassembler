@@ -32,13 +32,13 @@ const (
 // Handler holds the state needed to decrypt strings and streams in a PDF
 // once a password has been validated.
 type Handler struct {
-	V          int        // /V version
-	R          int        // /R revision
-	Length     int        // key length in bits (V2/V4)
-	FileKey    []byte     // file encryption key (computed from password)
-	StringAlg  Algorithm  // algorithm for strings
-	StreamAlg  Algorithm  // algorithm for streams
-	EmbedAlg   Algorithm  // algorithm for embedded files
+	V          int       // /V version
+	R          int       // /R revision
+	Length     int       // key length in bits (V2/V4)
+	FileKey    []byte    // file encryption key (computed from password)
+	StringAlg  Algorithm // algorithm for strings
+	StreamAlg  Algorithm // algorithm for streams
+	EmbedAlg   Algorithm // algorithm for embedded files
 	CryptFilts map[string]filterDef
 	StmF       string // default stream filter (V4)
 	StrF       string // default string filter (V4)
@@ -52,34 +52,34 @@ type filterDef struct {
 // Params is the inputs needed to instantiate a Handler from the PDF
 // /Encrypt dict.
 type Params struct {
-	V             int
-	R             int
-	Length        int
-	P             int32
-	OwnerEntry    []byte // /O
-	UserEntry     []byte // /U
-	OE            []byte // /OE (V5)
-	UE            []byte // /UE (V5)
-	Perms         []byte // /Perms (V5)
-	ID0           []byte // first element of /ID
-	EncryptMeta   bool
-	StmF          string
-	StrF          string
-	EFF           string
-	CryptFilters  map[string]string // name → CFM
+	V            int
+	R            int
+	Length       int
+	P            int32
+	OwnerEntry   []byte // /O
+	UserEntry    []byte // /U
+	OE           []byte // /OE (V5)
+	UE           []byte // /UE (V5)
+	Perms        []byte // /Perms (V5)
+	ID0          []byte // first element of /ID
+	EncryptMeta  bool
+	StmF         string
+	StrF         string
+	EFF          string
+	CryptFilters map[string]string // name → CFM
 }
 
 // New tries to instantiate a Handler given the encryption parameters and
 // the user password (empty string is the most common case).
 func New(p Params, password []byte) (*Handler, error) {
 	h := &Handler{
-		V:           p.V,
-		R:           p.R,
-		Length:      p.Length,
-		StmF:        p.StmF,
-		StrF:        p.StrF,
-		EFF:         p.EFF,
-		CryptFilts:  map[string]filterDef{},
+		V:          p.V,
+		R:          p.R,
+		Length:     p.Length,
+		StmF:       p.StmF,
+		StrF:       p.StrF,
+		EFF:        p.EFF,
+		CryptFilts: map[string]filterDef{},
 	}
 	for name, cfm := range p.CryptFilters {
 		alg, err := algFromCFM(cfm)
