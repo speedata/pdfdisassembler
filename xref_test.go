@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"compress/zlib"
 	"fmt"
+	"runtime"
 	"testing"
 )
 
@@ -211,6 +212,188 @@ func TestObjStmRejectsHostileHeader(t *testing.T) {
 				t.Fatal("expected an error, got nil")
 			}
 		})
+	}
+}
+
+// buildObjStmHugeN builds a PDF reachable via an xref stream where object 4
+// is a type-2 entry inside ObjStm 3. The ObjStm decodes to contentLen zero
+// bytes (cheap: FlateDecode compresses them to a few KB) but declares
+// /N == contentLen. A reader that trusts /N as a slice capacity balloons the
+// few-KB file into contentLen*sizeof(pair) bytes before parsing a single entry.
+func buildObjStmHugeN(t *testing.T, contentLen int) []byte {
+	t.Helper()
+	var zbuf bytes.Buffer
+	zw := zlib.NewWriter(&zbuf)
+	if _, err := zw.Write(make([]byte, contentLen)); err != nil {
+		t.Fatal(err)
+	}
+	zw.Close()
+	compressed := zbuf.Bytes()
+
+	var buf bytes.Buffer
+	buf.WriteString("%PDF-1.5\n%\xe2\xe3\xcf\xd3\n")
+
+	off3 := buf.Len()
+	fmt.Fprintf(&buf, "3 0 obj\n<< /Type /ObjStm /N %d /First 4 /Filter /FlateDecode /Length %d >>\nstream\n",
+		contentLen, len(compressed))
+	buf.Write(compressed)
+	buf.WriteString("\nendstream\nendobj\n")
+
+	off2 := buf.Len()
+	rows := []byte{
+		0x01, byte(off3 >> 8), byte(off3), 0x00, // obj 3: type 1 @ off3
+		0x02, 0x00, 0x03, 0x00, // obj 4: type 2 -> ObjStm 3, index 0
+	}
+	fmt.Fprintf(&buf, "2 0 obj\n<< /Type /XRef /W [ 1 2 1 ] /Index [ 3 2 ] /Size 5 /Root 1 0 R /Length %d >>\nstream\n",
+		len(rows))
+	buf.Write(rows)
+	buf.WriteString("\nendstream\nendobj\n")
+
+	fmt.Fprintf(&buf, "startxref\n%d\n%%%%EOF\n", off2)
+	return buf.Bytes()
+}
+
+func TestObjStmHugeNDoesNotAmplifyAllocation(t *testing.T) {
+	const contentLen = 16 << 20 // == DefaultMaxStreamSize, the largest /N can be
+	data := buildObjStmHugeN(t, contentLen)
+	r, err := Open(bytes.NewReader(data))
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	defer r.Close()
+
+	var before, after runtime.MemStats
+	runtime.GC()
+	runtime.ReadMemStats(&before)
+	_, err = r.Resolve(Reference{Number: 4, Generation: 0})
+	runtime.ReadMemStats(&after)
+	if err == nil {
+		t.Fatal("expected an error resolving the hostile ObjStm entry, got nil")
+	}
+	// Decoding contentLen zero bytes legitimately costs ~2*contentLen; the
+	// 256 MiB the /N prealloc would add is well past this ceiling.
+	const limit = 128 << 20
+	if used := after.TotalAlloc - before.TotalAlloc; used > limit {
+		t.Fatalf("resolving a %d-byte ObjStm allocated %d bytes (> %d limit); /N is amplifying allocation",
+			contentLen, used, limit)
+	}
+}
+
+// Capping the prealloc must not truncate a legitimate ObjStm whose entry count
+// exceeds the cap: object 100+i carries the value 100+i, and resolving one past
+// the cap must still return its exact value (proving append grew the slice).
+func TestObjStmManyObjectsResolvePastPrealloc(t *testing.T) {
+	const m = 5000 // > the internal maxObjStmPrealloc (4096)
+
+	var body bytes.Buffer
+	offsets := make([]int, m)
+	for i := 0; i < m; i++ {
+		offsets[i] = body.Len()
+		fmt.Fprintf(&body, "%d ", 100+i)
+	}
+	var head bytes.Buffer
+	for i := 0; i < m; i++ {
+		fmt.Fprintf(&head, "%d %d ", 100+i, offsets[i])
+	}
+	content := head.String() + body.String()
+
+	var buf bytes.Buffer
+	buf.WriteString("%PDF-1.5\n%\xe2\xe3\xcf\xd3\n")
+	off1 := buf.Len()
+	fmt.Fprintf(&buf, "1 0 obj\n<< /Type /ObjStm /N %d /First %d /Length %d >>\nstream\n",
+		m, head.Len(), len(content))
+	buf.WriteString(content)
+	buf.WriteString("\nendstream\nendobj\n")
+
+	last := 100 + m - 1
+	off2 := buf.Len()
+	rows := []byte{
+		0x01, byte(off1 >> 8), byte(off1), 0x00, 0x00, // obj 1: type 1 @ off1
+		0x02, 0x00, 0x01, byte((m - 1) >> 8), byte((m - 1) & 0xff), // last obj: type 2 -> ObjStm 1, idx m-1
+	}
+	fmt.Fprintf(&buf, "2 0 obj\n<< /Type /XRef /W [ 1 2 2 ] /Index [ 1 1 %d 1 ] /Size %d /Root 1 0 R /Length %d >>\nstream\n",
+		last, last+1, len(rows))
+	buf.Write(rows)
+	buf.WriteString("\nendstream\nendobj\n")
+	fmt.Fprintf(&buf, "startxref\n%d\n%%%%EOF\n", off2)
+
+	r, err := Open(bytes.NewReader(buf.Bytes()))
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	defer r.Close()
+	v, err := r.Resolve(Reference{Number: last, Generation: 0})
+	if err != nil {
+		t.Fatalf("Resolve object %d: %v", last, err)
+	}
+	n, ok := v.(Integer)
+	if !ok || int(n) != last {
+		t.Fatalf("object %d resolved to %v (%T), want Integer %d", last, v, v, last)
+	}
+}
+
+// With no startxref and no "trailer" keyword, recovery must scan the rebuilt
+// objects for a /Type /Catalog and synthesise a trailer pointing at it.
+func TestRecoverXrefViaCatalogScan(t *testing.T) {
+	var buf bytes.Buffer
+	buf.WriteString("%PDF-1.7\n%\xe2\xe3\xcf\xd3\n")
+	buf.WriteString("1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n")
+	buf.WriteString("2 0 obj\n<< /Type /Pages /Count 0 /Kids [] >>\nendobj\n")
+	buf.WriteString("%%EOF\n")
+
+	r, err := Open(bytes.NewReader(buf.Bytes()))
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	defer r.Close()
+	cat, err := r.Catalog()
+	if err != nil {
+		t.Fatalf("Catalog: %v", err)
+	}
+	if n, ok := cat.Name("Type"); !ok || n != "Catalog" {
+		t.Fatalf("/Type %q ok=%v, want Catalog", n, ok)
+	}
+}
+
+// An incremental update appends a second xref section whose /Prev points back
+// at the first. The newer section must win: object 1 resolves to its updated
+// body, and trailer keys present only in the older section still resolve.
+func TestPrevChainNewestSectionWins(t *testing.T) {
+	var buf bytes.Buffer
+	w := func(s string) int { off := buf.Len(); buf.WriteString(s); return off }
+	w("%PDF-1.7\n%\xe2\xe3\xcf\xd3\n")
+	off1v1 := w("1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n")
+	off2 := w("2 0 obj\n<< /Type /Pages /Count 0 /Kids [] >>\nendobj\n")
+
+	xref1 := buf.Len()
+	fmt.Fprintf(&buf, "xref\n0 3\n%010d %05d f \n%010d %05d n \n%010d %05d n \n",
+		0, 65535, off1v1, 0, off2, 0)
+	buf.WriteString("trailer\n<< /Size 3 /Root 1 0 R /Info 2 0 R >>\n")
+	fmt.Fprintf(&buf, "startxref\n%d\n%%%%EOF\n", xref1)
+
+	off1v2 := buf.Len()
+	buf.WriteString("1 0 obj\n<< /Type /Catalog /Pages 2 0 R /Lang (en-US) >>\nendobj\n")
+	xref2 := buf.Len()
+	fmt.Fprintf(&buf, "xref\n1 1\n%010d %05d n \n", off1v2, 0)
+	fmt.Fprintf(&buf, "trailer\n<< /Size 3 /Root 1 0 R /Prev %d >>\n", xref1)
+	fmt.Fprintf(&buf, "startxref\n%d\n%%%%EOF\n", xref2)
+
+	r, err := Open(bytes.NewReader(buf.Bytes()))
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	defer r.Close()
+
+	cat, err := r.Catalog()
+	if err != nil {
+		t.Fatalf("Catalog: %v", err)
+	}
+	if lang, ok := cat.String("Lang"); !ok || lang != "en-US" {
+		t.Errorf("/Lang = %q ok=%v, want en-US (updated object 1 not used)", lang, ok)
+	}
+	// /Info lives only in the older trailer; the merge must preserve it.
+	if _, ok := r.Trailer().Get("Info"); !ok {
+		t.Error("older trailer's /Info lost after /Prev merge")
 	}
 }
 
