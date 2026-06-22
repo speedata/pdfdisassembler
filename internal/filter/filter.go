@@ -244,8 +244,17 @@ func applyPredictor(in []byte, p Params) ([]byte, error) {
 	if columns == 0 {
 		columns = 1
 	}
+	// /Colors, /BitsPerComponent, /Columns are attacker-controlled. Negative
+	// values (or an overflowing product) drive rowBytes to zero or negative,
+	// which would divide-by-zero or make a negative-length slice below.
+	if colors < 1 || bpc < 1 || columns < 1 {
+		return nil, fmt.Errorf("predictor: /Colors, /BitsPerComponent, /Columns must be positive")
+	}
 	bytesPerPixel := (colors*bpc + 7) / 8
 	rowBytes := (columns*colors*bpc + 7) / 8
+	if bytesPerPixel < 1 || rowBytes < 1 {
+		return nil, fmt.Errorf("predictor: invalid row geometry (bytesPerPixel=%d, rowBytes=%d)", bytesPerPixel, rowBytes)
+	}
 
 	if p.Predictor == 2 {
 		// TIFF predictor 2: per-row horizontal differences. Not commonly

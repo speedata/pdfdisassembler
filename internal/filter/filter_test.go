@@ -84,6 +84,34 @@ func TestFlatePNGPredictor(t *testing.T) {
 	}
 }
 
+// Predictor /DecodeParms are attacker-controlled. Negative /Colors,
+// /BitsPerComponent, or /Columns drive rowBytes to zero or negative, which
+// would divide-by-zero or make a negative-length slice. Decode must error.
+func TestPredictorHostileParamsNoPanic(t *testing.T) {
+	var buf bytes.Buffer
+	zw := zlib.NewWriter(&buf)
+	zw.Write([]byte("ABCDEFGH"))
+	zw.Close()
+	flate := buf.Bytes()
+
+	cases := []struct {
+		name string
+		p    Params
+	}{
+		{"tiff_rowbytes_zero", Params{Predictor: 2, Colors: -7, BitsPerComponent: 1, Columns: 1}},
+		{"png_stride_zero", Params{Predictor: 12, Colors: -15, BitsPerComponent: 1, Columns: 1}},
+		{"png_negative_make", Params{Predictor: 12, Colors: -23, BitsPerComponent: 1, Columns: 1}},
+		{"negative_columns", Params{Predictor: 12, Colors: 1, BitsPerComponent: 8, Columns: -4}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if _, err := Decode("FlateDecode", flate, tc.p); err == nil {
+				t.Fatal("expected an error for hostile predictor params, got nil")
+			}
+		})
+	}
+}
+
 func TestFlateBombRejected(t *testing.T) {
 	// 1 MiB of zeros (compresses to ~1 KB) against a 4 KB cap.
 	var buf bytes.Buffer
