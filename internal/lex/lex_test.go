@@ -185,3 +185,17 @@ func TestLexerStringEscapes(t *testing.T) {
 		t.Fatalf("got %q want %q", tok.Bytes, want)
 	}
 }
+
+// FuzzLexer asserts tokenisation never panics on arbitrary input.
+func FuzzLexer(f *testing.F) {
+	f.Add([]byte("/Name 123 -4.5 (str\\n) <48656C> << /A 1 >> [ 1 2 ] true null %c"))
+	f.Fuzz(func(t *testing.T, data []byte) {
+		lx := New(data)
+		for i := 0; i <= len(data); i++ {
+			tok, err := lx.Next()
+			if err != nil || tok.Kind == EOF {
+				break
+			}
+		}
+	})
+}
