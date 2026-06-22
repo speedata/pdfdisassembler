@@ -213,3 +213,19 @@ func TestObjStmRejectsHostileHeader(t *testing.T) {
 		})
 	}
 }
+
+// A classical xref subsection declaring far more entries than the file holds
+// must be handled gracefully (recover), not over-read the buffer. The bound is
+// also overflow-safe on 32-bit by construction (untestable on a 64-bit run).
+func TestClassicalXrefHugeCountRecovers(t *testing.T) {
+	data := buildMinimalPDF(t)
+	data = bytes.Replace(data, []byte("xref\n0 5\n"), []byte("xref\n0 999999999\n"), 1)
+	r, err := Open(bytes.NewReader(data))
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	defer r.Close()
+	if _, err := r.Catalog(); err != nil {
+		t.Fatalf("Catalog: %v", err)
+	}
+}
