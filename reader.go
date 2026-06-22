@@ -7,6 +7,7 @@ import (
 	"io"
 	"iter"
 	"os"
+	"sort"
 	"strconv"
 
 	"github.com/speedata/pdfdisassembler/internal/lex"
@@ -431,15 +432,13 @@ func (r *Reader) Objects() iter.Seq[ObjectEntry] {
 		for ref := range r.xref {
 			refs = append(refs, ref)
 		}
-		// Insertion sort by Number then Generation (small dataset).
-		for i := 1; i < len(refs); i++ {
-			j := i
-			for j > 0 && (refs[j].Number < refs[j-1].Number ||
-				(refs[j].Number == refs[j-1].Number && refs[j].Generation < refs[j-1].Generation)) {
-				refs[j], refs[j-1] = refs[j-1], refs[j]
-				j--
+		// The entry count is attacker-controlled, so this must stay O(n log n).
+		sort.Slice(refs, func(i, j int) bool {
+			if refs[i].Number != refs[j].Number {
+				return refs[i].Number < refs[j].Number
 			}
-		}
+			return refs[i].Generation < refs[j].Generation
+		})
 		for _, ref := range refs {
 			obj, err := r.Resolve(ref)
 			if err != nil {

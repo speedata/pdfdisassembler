@@ -106,6 +106,26 @@ func TestObjectsIterator(t *testing.T) {
 	}
 }
 
+func TestObjectsIteratorSortedOrder(t *testing.T) {
+	r, err := Open(bytes.NewReader(buildMinimalPDF(t)))
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	defer r.Close()
+	var nums []int
+	for entry := range r.Objects() {
+		nums = append(nums, entry.Reference.Number)
+	}
+	if len(nums) == 0 {
+		t.Fatal("no objects iterated")
+	}
+	for i := 1; i < len(nums); i++ {
+		if nums[i-1] >= nums[i] {
+			t.Fatalf("Objects() not strictly ascending: %v", nums)
+		}
+	}
+}
+
 // buildPDFWithStream embeds payload as a FlateDecode stream (obj 3) so
 // DecodeStream can be exercised.
 func buildPDFWithStream(t *testing.T, payload []byte) []byte {
