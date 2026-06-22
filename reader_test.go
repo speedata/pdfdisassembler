@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"compress/zlib"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -342,4 +344,32 @@ func TestEmbeddedFilesNone(t *testing.T) {
 	if ef := r.EmbeddedFiles(); ef != nil {
 		t.Fatalf("got %+v, want nil", ef)
 	}
+}
+
+// FuzzOpen asserts the read pipeline never panics on arbitrary input: Open and
+// every accessor may return an error, but must not crash the process.
+func FuzzOpen(f *testing.F) {
+	seeds, _ := filepath.Glob("testdata/fixtures/*/input.pdf")
+	for _, p := range seeds {
+		if b, err := os.ReadFile(p); err == nil {
+			f.Add(b)
+		}
+	}
+	f.Add([]byte("%PDF-1.7\n"))
+	f.Fuzz(func(t *testing.T, data []byte) {
+		r, err := Open(bytes.NewReader(data))
+		if err != nil {
+			return
+		}
+		defer r.Close()
+		_, _ = r.Catalog()
+		_ = r.DocumentInfo()
+		_ = r.EmbeddedFiles()
+		_ = r.Version()
+		for entry := range r.Objects() {
+			if s, ok := entry.Object.(*Stream); ok {
+				_, _ = s.Content()
+			}
+		}
+	})
 }

@@ -264,3 +264,18 @@ func TestModeratelyNestedArrayResolves(t *testing.T) {
 		t.Fatalf("want n op with one array operand, got %+v", op)
 	}
 }
+
+// FuzzScanner asserts the content-stream scanner never panics: Next may error,
+// but must not crash on arbitrary input.
+func FuzzScanner(f *testing.F) {
+	f.Add([]byte("q 1 0 0 1 0 0 cm /F1 12 Tf (hi) Tj [(a) -5 (b)] TJ BI /W 1 ID xx EI Q"))
+	f.Add([]byte("/Span << /MCID 7 >> BDC EMC"))
+	f.Fuzz(func(t *testing.T, data []byte) {
+		sc := contentstream.New(data)
+		for i := 0; i <= len(data); i++ {
+			if _, err := sc.Next(); err != nil {
+				break
+			}
+		}
+	})
+}

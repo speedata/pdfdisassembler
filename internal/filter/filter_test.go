@@ -252,3 +252,25 @@ func TestImageFilterRejected(t *testing.T) {
 		t.Fatal("FlateDecode should not be image filter")
 	}
 }
+
+// FuzzDecode asserts every filter and the predictor never panic on arbitrary
+// input or attacker-controlled predictor parameters.
+func FuzzDecode(f *testing.F) {
+	var seed bytes.Buffer
+	zw := zlib.NewWriter(&seed)
+	zw.Write([]byte("seed data"))
+	zw.Close()
+	f.Add(seed.Bytes(), 12, 4, 1, 8)
+	f.Fuzz(func(t *testing.T, data []byte, predictor, columns, colors, bpc int) {
+		p := Params{
+			Predictor:        predictor,
+			Columns:          columns,
+			Colors:           colors,
+			BitsPerComponent: bpc,
+			MaxOutput:        1 << 20,
+		}
+		for _, name := range []string{"FlateDecode", "LZWDecode", "ASCII85Decode", "ASCIIHexDecode", "RunLengthDecode"} {
+			_, _ = Decode(name, data, p)
+		}
+	})
+}
