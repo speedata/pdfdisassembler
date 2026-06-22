@@ -16,8 +16,10 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 
@@ -25,20 +27,32 @@ import (
 )
 
 func main() {
-	inlineContent := flag.Bool("stream-content", false, "embed decoded stream bytes as hex under decoded.hex")
-	noPreview := flag.Bool("no-preview", false, "omit the preview_utf8 field on streams")
-	flag.Usage = func() {
-		fmt.Fprintln(os.Stderr, "usage: pdfdump [flags] <file.pdf>")
-		flag.PrintDefaults()
-	}
-	flag.Parse()
-	if flag.NArg() != 1 {
-		flag.Usage()
-		os.Exit(2)
-	}
-	r, err := pdfdisassembler.OpenFile(flag.Arg(0))
-	if err != nil {
+	if err := run(os.Args[1:], os.Stdout); err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			return
+		}
 		log.Fatal(err)
+	}
+}
+
+func run(args []string, stdout io.Writer) error {
+	fs := flag.NewFlagSet("pdfdump", flag.ContinueOnError)
+	inlineContent := fs.Bool("stream-content", false, "embed decoded stream bytes as hex under decoded.hex")
+	noPreview := fs.Bool("no-preview", false, "omit the preview_utf8 field on streams")
+	fs.Usage = func() {
+		fmt.Fprintln(os.Stderr, "usage: pdfdump [flags] <file.pdf>")
+		fs.PrintDefaults()
+	}
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	if fs.NArg() != 1 {
+		fs.Usage()
+		return errors.New("pdfdump: exactly one input file is required")
+	}
+	r, err := pdfdisassembler.OpenFile(fs.Arg(0))
+	if err != nil {
+		return err
 	}
 	defer r.Close()
 
@@ -50,9 +64,8 @@ func main() {
 	}
 	data, err := pdfdisassembler.Dump(r, opts)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
-	if _, err := os.Stdout.Write(data); err != nil {
-		log.Fatal(err)
-	}
+	_, err = stdout.Write(data)
+	return err
 }
