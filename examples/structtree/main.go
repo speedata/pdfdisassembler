@@ -41,10 +41,26 @@ func main() {
 		}
 	}
 
-	walk(r, root, roleMap, 0)
+	walk(r, root, roleMap, 0, map[pdfdisassembler.Reference]struct{}{})
 }
 
-func walk(r *pdfdisassembler.Reader, node *pdfdisassembler.Dict, roleMap map[string]string, depth int) {
+// maxStructDepth bounds the recursion so a deeply nested or cyclic /K tree in a
+// hostile PDF can't overflow the stack; seen breaks reference cycles earlier.
+const maxStructDepth = 1000
+
+// visit reports whether ref is newly seen (false if already visited).
+func visit(seen map[pdfdisassembler.Reference]struct{}, ref pdfdisassembler.Reference) bool {
+	if _, ok := seen[ref]; ok {
+		return false
+	}
+	seen[ref] = struct{}{}
+	return true
+}
+
+func walk(r *pdfdisassembler.Reader, node *pdfdisassembler.Dict, roleMap map[string]string, depth int, seen map[pdfdisassembler.Reference]struct{}) {
+	if node == nil || depth > maxStructDepth {
+		return
+	}
 	indent := strings.Repeat("  ", depth)
 	typeName, _ := node.Name("S")
 	if typeName == "" {
@@ -61,6 +77,9 @@ func walk(r *pdfdisassembler.Reader, node *pdfdisassembler.Dict, roleMap map[str
 		return
 	}
 	if ref, ok := k.(pdfdisassembler.Reference); ok {
+		if !visit(seen, ref) {
+			return
+		}
 		if v, err := r.Resolve(ref); err == nil {
 			k = v
 		}
@@ -68,11 +87,14 @@ func walk(r *pdfdisassembler.Reader, node *pdfdisassembler.Dict, roleMap map[str
 	switch t := k.(type) {
 	case pdfdisassembler.Array:
 		for _, child := range t {
+			if ref, ok := child.(pdfdisassembler.Reference); ok && !visit(seen, ref) {
+				continue
+			}
 			if d, err := r.ResolveDict(child); err == nil {
-				walk(r, d, roleMap, depth+1)
+				walk(r, d, roleMap, depth+1, seen)
 			}
 		}
 	case *pdfdisassembler.Dict:
-		walk(r, t, roleMap, depth+1)
+		walk(r, t, roleMap, depth+1, seen)
 	}
 }
