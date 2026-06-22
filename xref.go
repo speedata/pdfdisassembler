@@ -153,7 +153,9 @@ func (r *Reader) readClassicalXrefAt(offset int64) (int64, error) {
 		pos = skipEOL(r.buf, lineEnd)
 
 		for i := 0; i < count; i++ {
-			if pos+20 > len(r.buf) {
+			// pos walks the raw buffer by 20 per entry over an attacker-set
+			// count; bound it without pos+20, which can overflow int on 32-bit.
+			if pos < 0 || pos > len(r.buf)-20 {
 				return 0, errors.New("classical xref: truncated entry")
 			}
 			entry := r.buf[pos : pos+20]
