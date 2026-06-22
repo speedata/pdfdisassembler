@@ -393,3 +393,71 @@ func FuzzOpen(f *testing.F) {
 		}
 	})
 }
+
+func TestResolveHelpers(t *testing.T) {
+	data := buildDictPDF(t, []string{
+		"<< /Type /Catalog /Pages 2 0 R /IntRef 3 0 R /BoolRef 4 0 R /ArrRef 5 0 R >>",
+		"<< /Type /Pages /Kids [] /Count 0 >>",
+		"42",
+		"true",
+		"[ 1 2 3 ]",
+	})
+	r, err := Open(bytes.NewReader(data))
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	defer r.Close()
+	cat, err := r.Catalog()
+	if err != nil {
+		t.Fatalf("Catalog: %v", err)
+	}
+	intRef, _ := cat.Get("IntRef")
+	boolRef, _ := cat.Get("BoolRef")
+	arrRef, _ := cat.Get("ArrRef")
+
+	if v, err := r.ResolveInt(intRef); err != nil || v != 42 {
+		t.Errorf("ResolveInt = %d, %v", v, err)
+	}
+	if v, err := r.ResolveBool(boolRef); err != nil || !v {
+		t.Errorf("ResolveBool = %v, %v", v, err)
+	}
+	if a, err := r.ResolveArray(arrRef); err != nil || len(a) != 3 {
+		t.Errorf("ResolveArray len = %d, %v", len(a), err)
+	}
+	// Type mismatches must error.
+	if _, err := r.ResolveInt(boolRef); err == nil {
+		t.Error("ResolveInt on a bool")
+	}
+	if _, err := r.ResolveBool(arrRef); err == nil {
+		t.Error("ResolveBool on an array")
+	}
+	if _, err := r.ResolveArray(intRef); err == nil {
+		t.Error("ResolveArray on an int")
+	}
+
+	if r.Trailer() == nil {
+		t.Fatal("nil trailer")
+	}
+	if _, ok := r.Trailer().Get("Root"); !ok {
+		t.Error("trailer missing /Root")
+	}
+}
+
+// A catalog /Version higher than the header version wins (PDF 32000-1 §7.5.5).
+func TestVersionCatalogOverride(t *testing.T) {
+	data := buildDictPDF(t, []string{
+		"<< /Type /Catalog /Pages 2 0 R /Version /2.0 >>",
+		"<< /Type /Pages /Kids [] /Count 0 >>",
+	})
+	r, err := Open(bytes.NewReader(data))
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	defer r.Close()
+	if _, err := r.Catalog(); err != nil { // Version() reads the cached catalog
+		t.Fatalf("Catalog: %v", err)
+	}
+	if v := r.Version(); v != "2.0" {
+		t.Errorf("Version = %q, want 2.0 (catalog override)", v)
+	}
+}
