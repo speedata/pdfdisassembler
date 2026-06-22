@@ -134,8 +134,8 @@ func paramsFromDict(d *Dict) filter.Params {
 	if n, ok := d.Int("BitsPerComponent"); ok {
 		p.BitsPerComponent = int(n)
 	}
-	if n, ok := d.Int("EarlyChange"); ok {
-		p.EarlyChange = int(n)
+	if n, ok := d.Int("EarlyChange"); ok && n == 0 {
+		p.NoEarlyChange = true
 	}
 	return p
 }
