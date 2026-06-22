@@ -30,6 +30,7 @@ type Op struct {
 type Scanner struct {
 	lx    *lex.Lexer
 	stack []Operand
+	depth int
 	done  bool
 }
 
@@ -44,6 +45,10 @@ func New(src []byte) *Scanner {
 // ErrUnexpectedEOF indicates that the scanner ran out of bytes mid-
 // operation (e.g. inside a dictionary, or while looking for EI).
 var ErrUnexpectedEOF = errors.New("pdfdisassembler/contentstream: unexpected EOF")
+
+// maxNestDepth bounds array/dict nesting so a hostile content stream can't
+// recurse the scanner into a stack overflow.
+const maxNestDepth = 1000
 
 // Next returns the next operation. At end of stream it returns io.EOF.
 // Any other error indicates malformed input; the scanner is not safe
@@ -148,6 +153,11 @@ func (s *Scanner) nextToken() (lex.Token, error) {
 }
 
 func (s *Scanner) readArray() ([]Operand, error) {
+	s.depth++
+	defer func() { s.depth-- }()
+	if s.depth > maxNestDepth {
+		return nil, fmt.Errorf("pdfdisassembler/contentstream: nesting too deep (> %d)", maxNestDepth)
+	}
 	var out []Operand
 	for {
 		tok, err := s.nextToken()
@@ -196,6 +206,11 @@ func (s *Scanner) readArray() ([]Operand, error) {
 }
 
 func (s *Scanner) readDict() (Dict, error) {
+	s.depth++
+	defer func() { s.depth-- }()
+	if s.depth > maxNestDepth {
+		return nil, fmt.Errorf("pdfdisassembler/contentstream: nesting too deep (> %d)", maxNestDepth)
+	}
 	out := Dict{}
 	for {
 		tok, err := s.nextToken()
@@ -326,6 +341,9 @@ func (s *Scanner) readInlineImage() ([]byte, error) {
 		// Check trailing boundary.
 		if pos+2 == len(src) || lex.IsWhitespace(src[pos+2]) || lex.IsDelimiter(src[pos+2]) {
 			imgEnd := pos - 1 // strip the whitespace separator
+			if imgEnd < imgStart {
+				imgEnd = imgStart // empty image: no data between ID and EI
+			}
 			s.lx.SetPos(pos + 2)
 			return append([]byte(nil), src[imgStart:imgEnd]...), nil
 		}

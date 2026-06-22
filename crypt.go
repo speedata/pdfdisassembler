@@ -1,7 +1,6 @@
 package pdfdisassembler
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/speedata/pdfdisassembler/internal/crypt"
@@ -11,8 +10,6 @@ import (
 // unencrypted.
 type encryptCtx struct {
 	handler *crypt.Handler
-	// password is retained for re-derivation if needed.
-	password []byte
 }
 
 // initEncrypt reads the trailer /Encrypt entry, builds the crypt.Handler
@@ -117,15 +114,8 @@ func encryptParamsFromDict(r *Reader, d *Dict) (crypt.Params, error) {
 	return p, nil
 }
 
-func (e *encryptCtx) decryptStream(data []byte, objNum, objGen int, dict *Dict) ([]byte, error) {
-	// Per-stream /Filter chain may contain /Crypt with a parameter dict;
-	// for now we use the default stream cipher.
+func (e *encryptCtx) decryptStream(data []byte, objNum, objGen int) ([]byte, error) {
+	// V4 streams may carry an inline /Crypt filter overriding the cipher; it
+	// is not yet honored — the default stream cipher is always used.
 	return e.handler.DecryptStream(data, objNum, objGen, "")
 }
-
-func (e *encryptCtx) decryptString(data []byte, objNum, objGen int) ([]byte, error) {
-	return e.handler.DecryptString(data, objNum, objGen)
-}
-
-// guard against accidental nil deref in callers
-var _ = errors.New
