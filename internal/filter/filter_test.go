@@ -3,6 +3,7 @@ package filter
 import (
 	"bytes"
 	"compress/zlib"
+	"fmt"
 	"testing"
 )
 
@@ -81,6 +82,118 @@ func TestFlatePNGPredictor(t *testing.T) {
 	want := []byte{1, 2, 3, 4, 5, 6, 7, 8}
 	if !bytes.Equal(out, want) {
 		t.Fatalf("got % x want % x", out, want)
+	}
+}
+
+func TestPredictorHostileParamsNoPanic(t *testing.T) {
+	var buf bytes.Buffer
+	zw := zlib.NewWriter(&buf)
+	zw.Write([]byte("ABCDEFGH"))
+	zw.Close()
+	flate := buf.Bytes()
+
+	cases := []struct {
+		name string
+		p    Params
+	}{
+		{"tiff_rowbytes_zero", Params{Predictor: 2, Colors: -7, BitsPerComponent: 1, Columns: 1}},
+		{"png_stride_zero", Params{Predictor: 12, Colors: -15, BitsPerComponent: 1, Columns: 1}},
+		{"png_negative_make", Params{Predictor: 12, Colors: -23, BitsPerComponent: 1, Columns: 1}},
+		{"negative_columns", Params{Predictor: 12, Colors: 1, BitsPerComponent: 8, Columns: -4}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if _, err := Decode("FlateDecode", flate, tc.p); err == nil {
+				t.Fatal("expected an error for hostile predictor params, got nil")
+			}
+		})
+	}
+}
+
+// pngForwardFilter is the inverse of applyPredictor's PNG path: it applies row
+// filter tag to rows, so decode(encode(rows)) must recover rows exactly.
+func pngForwardFilter(tag byte, rows [][]byte, bpp int) []byte {
+	var out []byte
+	prev := make([]byte, len(rows[0]))
+	for _, raw := range rows {
+		out = append(out, tag)
+		filt := make([]byte, len(raw))
+		for c := range raw {
+			var left, upLeft byte
+			up := prev[c]
+			if c >= bpp {
+				left = raw[c-bpp]
+				upLeft = prev[c-bpp]
+			}
+			switch tag {
+			case 0:
+				filt[c] = raw[c]
+			case 1:
+				filt[c] = raw[c] - left
+			case 2:
+				filt[c] = raw[c] - up
+			case 3:
+				filt[c] = raw[c] - byte((int(left)+int(up))/2)
+			case 4:
+				filt[c] = raw[c] - paeth(left, up, upLeft)
+			}
+		}
+		out = append(out, filt...)
+		prev = raw
+	}
+	return out
+}
+
+func flate(t *testing.T, b []byte) []byte {
+	t.Helper()
+	var buf bytes.Buffer
+	zw := zlib.NewWriter(&buf)
+	zw.Write(b)
+	zw.Close()
+	return buf.Bytes()
+}
+
+func TestPredictorPNGRoundTrip(t *testing.T) {
+	rows := [][]byte{
+		{10, 20, 30, 40},
+		{15, 25, 35, 45},
+		{200, 100, 50, 25},
+	}
+	var want []byte
+	for _, r := range rows {
+		want = append(want, r...)
+	}
+	for tag := byte(0); tag <= 4; tag++ {
+		t.Run(fmt.Sprintf("tag%d", tag), func(t *testing.T) {
+			filtered := pngForwardFilter(tag, rows, 1)
+			out, err := Decode("FlateDecode", flate(t, filtered), Params{
+				Predictor: 12, Columns: 4, Colors: 1, BitsPerComponent: 8,
+			})
+			if err != nil {
+				t.Fatalf("decode: %v", err)
+			}
+			if !bytes.Equal(out, want) {
+				t.Fatalf("tag %d round-trip: got % x want % x", tag, out, want)
+			}
+		})
+	}
+}
+
+func TestPredictorTIFFRoundTrip(t *testing.T) {
+	raw := []byte{10, 5, 250, 3}
+	filt := make([]byte, len(raw))
+	filt[0] = raw[0]
+	for c := 1; c < len(raw); c++ {
+		filt[c] = raw[c] - raw[c-1]
+	}
+	out, err := Decode("FlateDecode", flate(t, filt), Params{
+		Predictor: 2, Columns: 4, Colors: 1, BitsPerComponent: 8,
+	})
+	if err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if !bytes.Equal(out, raw) {
+		t.Fatalf("TIFF round-trip: got % x want % x", out, raw)
 	}
 }
 
