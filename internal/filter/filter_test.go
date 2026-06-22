@@ -85,9 +85,6 @@ func TestFlatePNGPredictor(t *testing.T) {
 	}
 }
 
-// Predictor /DecodeParms are attacker-controlled. Negative /Colors,
-// /BitsPerComponent, or /Columns drive rowBytes to zero or negative, which
-// would divide-by-zero or make a negative-length slice. Decode must error.
 func TestPredictorHostileParamsNoPanic(t *testing.T) {
 	var buf bytes.Buffer
 	zw := zlib.NewWriter(&buf)
@@ -156,7 +153,6 @@ func flate(t *testing.T, b []byte) []byte {
 	return buf.Bytes()
 }
 
-// Round-trip every PNG predictor tag (None/Sub/Up/Average/Paeth) through decode.
 func TestPredictorPNGRoundTrip(t *testing.T) {
 	rows := [][]byte{
 		{10, 20, 30, 40},
@@ -183,7 +179,6 @@ func TestPredictorPNGRoundTrip(t *testing.T) {
 	}
 }
 
-// Round-trip the TIFF predictor (2): per-row horizontal differences.
 func TestPredictorTIFFRoundTrip(t *testing.T) {
 	raw := []byte{10, 5, 250, 3}
 	filt := make([]byte, len(raw))
