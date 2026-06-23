@@ -441,8 +441,6 @@ func TestSkipEOL(t *testing.T) {
 	}
 }
 
-// indexEOL finds the first CR or LF at/after pos, or -1 when the rest of the
-// buffer has none.
 func TestIndexEOL(t *testing.T) {
 	cases := []struct {
 		buf  string

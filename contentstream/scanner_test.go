@@ -346,8 +346,8 @@ func TestReadDictValueErrors(t *testing.T) {
 	}
 }
 
-// readArray must accept every element kind, including the ones TJ rarely uses
-// (name, bool, null, nested array, nested dict), each with the right Kind.
+// Every readArray element kind, including the ones TJ rarely uses (bool, null,
+// name, nested array/dict).
 func TestArrayMixedElementKinds(t *testing.T) {
 	ops := collect(t, "[42 3.14 /Nm (s) <41> true false null [1 2] << /K 9 >>] TJ")
 	if len(ops) != 1 || ops[0].Operator != "TJ" {
@@ -370,9 +370,8 @@ func TestArrayMixedElementKinds(t *testing.T) {
 	}
 }
 
-// An unexpected keyword inside an array, and an unterminated array, must error.
 func TestArrayElementErrors(t *testing.T) {
-	for _, src := range []string{"[ foo ] n", "[1 2"} {
+	for _, src := range []string{"[ foo ] n", "[1 2"} { // bad keyword in array; unterminated
 		t.Run(src, func(t *testing.T) {
 			if _, err := contentstream.New([]byte(src)).Next(); err == nil {
 				t.Fatal("expected an error, got nil")
@@ -381,8 +380,7 @@ func TestArrayElementErrors(t *testing.T) {
 	}
 }
 
-// Int reports ok=false for a non-number operand and for an integer literal too
-// large for int64, rather than returning a wrapped value.
+// Int must report ok=false on int64 overflow (not silently wrap) and for non-numbers.
 func TestOperandIntEdgeCases(t *testing.T) {
 	if _, ok := collect(t, "/Name n")[0].Operands[0].Int(); ok {
 		t.Error("name operand yielded an int")

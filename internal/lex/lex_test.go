@@ -220,9 +220,7 @@ func TestLexerAccessors(t *testing.T) {
 	}
 }
 
-// Escape and newline handling in literal strings (§7.3.4.2) beyond the cases in
-// TestLexerLiteralString: the \r\t\b\f escapes, backslash-CR/CRLF continuations,
-// unknown escapes (backslash dropped), and bare CR/CRLF normalised to LF.
+// Literal-string escapes/newlines (§7.3.4.2) not already in TestLexerLiteralString.
 func TestLexerLiteralStringEscapes(t *testing.T) {
 	cases := []struct {
 		name, in, want string
@@ -250,18 +248,15 @@ func TestLexerLiteralStringEscapes(t *testing.T) {
 	}
 }
 
-// A trailing backslash and an unterminated string must error, not read past the
-// buffer.
 func TestLexerLiteralStringErrors(t *testing.T) {
-	for _, in := range []string{"(\\", "(abc"} {
+	for _, in := range []string{"(\\", "(abc"} { // trailing backslash; unterminated
 		if _, err := New([]byte(in)).Next(); err == nil {
 			t.Errorf("%q: expected an error, got nil", in)
 		}
 	}
 }
 
-// IsDelimiter / IsWhitespace partition the special bytes per §7.2.2; a
-// misclassified byte would break tokenisation, so pin the delimiter set.
+// A misclassified delimiter byte (§7.2.2) would break tokenisation, so pin the set.
 func TestIsDelimiter(t *testing.T) {
 	for _, c := range []byte("()<>[]{}/%") {
 		if !IsDelimiter(c) {
