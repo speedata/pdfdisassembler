@@ -1,17 +1,14 @@
 package filter
 
-import (
-	"errors"
-	"fmt"
-)
+import "fmt"
 
 // decodeLZW decodes a PDF LZW stream. Code widths grow from 9 to 12 bits;
 // the early-change flag (default 1) shrinks the threshold at which each
 // width step happens.
 func decodeLZW(in []byte, p Params) ([]byte, error) {
-	early := p.EarlyChange
-	if early == 0 {
-		early = 1
+	early := 1
+	if p.NoEarlyChange {
+		early = 0
 	}
 	const (
 		clearCode = 256
@@ -78,9 +75,6 @@ func decodeLZW(in []byte, p Params) ([]byte, error) {
 			codeWidth++
 		}
 	}
-	if prev < 0 {
-		return out, nil
-	}
 	return out, nil
 }
 
@@ -115,5 +109,3 @@ func (b *bitReader) readBits(n int) (uint32, bool) {
 	b.buf &= (uint64(1) << b.have) - 1
 	return v, true
 }
-
-var _ = errors.New

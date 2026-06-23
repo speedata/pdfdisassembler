@@ -2,10 +2,132 @@ package filter
 
 import (
 	"bytes"
+	"compress/lzw"
 	"compress/zlib"
+	"encoding/ascii85"
 	"fmt"
 	"testing"
 )
+
+// lcg fills b with a deterministic pseudo-random byte stream — enough entropy
+// to grow the LZW dictionary through every code width and trigger a reset.
+func lcg(b []byte, seed uint32) {
+	x := seed
+	for i := range b {
+		x = x*1664525 + 1013904223
+		b[i] = byte(x >> 24)
+	}
+}
+
+// TestLZWRoundTripStdlib decodes streams produced by the standard library's
+// MSB LZW writer. That writer uses the non-early code-width change, so decode
+// with NoEarlyChange; the varied inputs exercise dictionary reuse, the KwKwK
+// case, 9->12-bit width growth, and the dictionary-full reset.
+func TestLZWRoundTripStdlib(t *testing.T) {
+	big := make([]byte, 64<<10)
+	lcg(big, 1)
+	for _, orig := range [][]byte{
+		[]byte("ABABABABABABABABABAB"),
+		[]byte("TOBEORNOTTOBEORTOBEORNOT"),
+		bytes.Repeat([]byte("xyz "), 4096),
+		big,
+		{},
+		{42},
+	} {
+		var buf bytes.Buffer
+		w := lzw.NewWriter(&buf, lzw.MSB, 8)
+		if _, err := w.Write(orig); err != nil {
+			t.Fatal(err)
+		}
+		w.Close()
+		got, err := Decode("LZWDecode", buf.Bytes(), Params{NoEarlyChange: true})
+		if err != nil {
+			t.Fatalf("decode (len %d): %v", len(orig), err)
+		}
+		if !bytes.Equal(got, orig) {
+			t.Fatalf("round-trip mismatch for len %d input", len(orig))
+		}
+	}
+}
+
+// TestLZWEarlyChangeHonored proves NoEarlyChange actually selects the decode
+// convention: the stdlib stream (non-early) round-trips only with NoEarlyChange
+// set; under the early-change default the same bytes must not reproduce the input.
+func TestLZWEarlyChangeHonored(t *testing.T) {
+	orig := make([]byte, 4096) // long enough to cross the first width boundary
+	lcg(orig, 7)
+	var buf bytes.Buffer
+	w := lzw.NewWriter(&buf, lzw.MSB, 8)
+	w.Write(orig)
+	w.Close()
+	enc := buf.Bytes()
+
+	got, err := Decode("LZWDecode", enc, Params{NoEarlyChange: true})
+	if err != nil || !bytes.Equal(got, orig) {
+		t.Fatalf("NoEarlyChange decode of a non-early stream: err=%v equal=%v", err, bytes.Equal(got, orig))
+	}
+	if d, err := Decode("LZWDecode", enc, Params{}); err == nil && bytes.Equal(d, orig) {
+		t.Fatal("early-change default reproduced a non-early stream: the flag is ignored")
+	}
+}
+
+// A stream truncated mid-code must not panic: readBits pads the final partial
+// word with zeros and decoding stops cleanly (partial output or error).
+func TestLZWTruncatedNoPanic(t *testing.T) {
+	orig := make([]byte, 600) // long enough to reach 10-bit codes
+	lcg(orig, 3)
+	var buf bytes.Buffer
+	w := lzw.NewWriter(&buf, lzw.MSB, 8)
+	w.Write(orig)
+	w.Close()
+	enc := buf.Bytes()
+	for cut := 1; cut <= 4 && cut < len(enc); cut++ {
+		_, _ = Decode("LZWDecode", enc[:len(enc)-cut], Params{NoEarlyChange: true})
+	}
+}
+
+func TestASCII85RoundTripStdlib(t *testing.T) {
+	for _, orig := range [][]byte{
+		[]byte("Hello World!"),
+		{0, 0, 0, 0, 1, 2, 3}, // includes an all-zero group
+		{1},                   // 1-byte partial group
+		{1, 2},                // 2-byte partial group
+		{1, 2, 3},             // 3-byte partial group
+		bytes.Repeat([]byte{255}, 17),
+		{},
+	} {
+		enc := make([]byte, ascii85.MaxEncodedLen(len(orig)))
+		n := ascii85.Encode(enc, orig)
+		in := append(enc[:n:n], '~', '>')
+		out, err := Decode("ASCII85Decode", in, Params{})
+		if err != nil {
+			t.Fatalf("decode %v: %v", orig, err)
+		}
+		if !bytes.Equal(out, orig) {
+			t.Fatalf("round-trip mismatch: in=%v out=%v", orig, out)
+		}
+	}
+}
+
+func TestASCII85EdgeCases(t *testing.T) {
+	// 'z' is shorthand for a full zero group; <~ is an optional opening marker;
+	// whitespace between digits is ignored.
+	out, err := Decode("ASCII85Decode", []byte("<~z 8 7 c U R D ] i , \" E b o 8 0 ~>"), Params{})
+	if err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if want := append([]byte{0, 0, 0, 0}, "Hello World!"...); !bytes.Equal(out, want) {
+		t.Fatalf("got %q, want %q", out, want)
+	}
+
+	if _, err := Decode("ASCII85Decode", []byte("abc!\x01def~>"), Params{}); err == nil {
+		t.Fatal("expected an error on a byte outside the ASCII85 alphabet")
+	}
+	// 'z' may not appear mid-group (after a partial digit).
+	if _, err := Decode("ASCII85Decode", []byte("87z~>"), Params{}); err == nil {
+		t.Fatal("expected an error for 'z' inside a group")
+	}
+}
 
 func TestASCIIHex(t *testing.T) {
 	cases := map[string]string{

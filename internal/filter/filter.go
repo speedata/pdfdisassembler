@@ -29,8 +29,9 @@ type Params struct {
 	Columns          int
 	Colors           int
 	BitsPerComponent int
-	// LZWDecode early-change flag.
-	EarlyChange int
+	// NoEarlyChange honours the rare /EarlyChange 0; the zero value keeps
+	// LZWDecode's default early code-width change.
+	NoEarlyChange bool
 	// MaxOutput caps decoded bytes per filter; <= 0 means unlimited.
 	MaxOutput int64
 }
