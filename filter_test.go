@@ -101,3 +101,32 @@ func TestStreamFilterChainArray(t *testing.T) {
 		t.Fatalf("chained decode = %q, want %q", got, orig)
 	}
 }
+
+func TestParamsFromDict(t *testing.T) {
+	d := newDict(nil)
+	d.set("Predictor", Integer(12))
+	d.set("Columns", Integer(5))
+	d.set("Colors", Integer(3))
+	d.set("BitsPerComponent", Integer(16))
+	d.set("EarlyChange", Integer(0))
+	p := paramsFromDict(d)
+	if p.Predictor != 12 || p.Columns != 5 || p.Colors != 3 || p.BitsPerComponent != 16 {
+		t.Errorf("predictor params = %+v, want Predictor=12 Columns=5 Colors=3 BitsPerComponent=16", p)
+	}
+	if !p.NoEarlyChange {
+		t.Error("/EarlyChange 0 must set NoEarlyChange")
+	}
+
+	// 1 is the LZW default, so it must NOT set NoEarlyChange.
+	d1 := newDict(nil)
+	d1.set("EarlyChange", Integer(1))
+	if paramsFromDict(d1).NoEarlyChange {
+		t.Error("/EarlyChange 1 must not set NoEarlyChange")
+	}
+
+	empty := paramsFromDict(newDict(nil))
+	if empty.Predictor != 0 || empty.Columns != 0 || empty.Colors != 0 ||
+		empty.BitsPerComponent != 0 || empty.NoEarlyChange {
+		t.Errorf("empty dict = %+v, want zero Params", empty)
+	}
+}

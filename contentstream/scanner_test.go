@@ -294,3 +294,54 @@ func FuzzScanner(f *testing.F) {
 		}
 	})
 }
+
+// One BDC property dict, deliberately built to hit every readValue value kind.
+func TestBDCPropertyValueKinds(t *testing.T) {
+	src := `/P << /B true /F false /N null /Num 1 /Nm /X /S (s) /A [1 2] /D << /Inner 9 >> >> BDC`
+	ops := collect(t, src)
+	if len(ops) != 1 || ops[0].Operator != "BDC" {
+		t.Fatalf("want one BDC op, got %+v", ops)
+	}
+	d := ops[0].Operands[1].Dict
+	wantKind := map[string]contentstream.Kind{
+		"B":   contentstream.KindBool,
+		"F":   contentstream.KindBool,
+		"N":   contentstream.KindNull,
+		"Num": contentstream.KindNumber,
+		"Nm":  contentstream.KindName,
+		"S":   contentstream.KindString,
+		"A":   contentstream.KindArray,
+		"D":   contentstream.KindDict,
+	}
+	for k, want := range wantKind {
+		if d[k].Kind != want {
+			t.Errorf("%s.Kind = %v, want %v", k, d[k].Kind, want)
+		}
+	}
+	if !d["B"].Bool || d["F"].Bool {
+		t.Errorf("bool values wrong: B=%v F=%v, want true/false", d["B"].Bool, d["F"].Bool)
+	}
+	if string(d["S"].Bytes) != "s" {
+		t.Errorf("string value = %q, want s", d["S"].Bytes)
+	}
+	if len(d["A"].Array) != 2 {
+		t.Errorf("array value len = %d, want 2", len(d["A"].Array))
+	}
+	if d["D"].Dict["Inner"].Kind != contentstream.KindNumber {
+		t.Errorf("nested dict /Inner kind = %v, want Number", d["D"].Dict["Inner"].Kind)
+	}
+}
+
+func TestReadDictValueErrors(t *testing.T) {
+	for _, src := range []string{
+		"/P << /K",            // EOF mid-value
+		"/P << /K ] >> BDC",   // delimiter where a value is expected
+		"/P << /K foo >> BDC", // unexpected keyword where a value is expected
+	} {
+		t.Run(src, func(t *testing.T) {
+			if _, err := contentstream.New([]byte(src)).Next(); err == nil {
+				t.Fatal("expected an error, got nil")
+			}
+		})
+	}
+}

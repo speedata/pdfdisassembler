@@ -315,3 +315,59 @@ func TestComputeV5KeyRejectsShortEntries(t *testing.T) {
 		})
 	}
 }
+
+// Owner-password path. Unlike the user path, the owner hash mixes in the
+// 48-byte /U entry (§7.6.4.4.10) — so userEntry here must be well-formed.
+func TestComputeV5KeyOwnerPath(t *testing.T) {
+	const R = 6
+	password := []byte("owner-pw")
+	fileKey := bytes.Repeat([]byte{0x37}, 32)
+
+	// All-zero validation hash (first 32 bytes) can never equal v5Hash output,
+	// forcing the user path to miss so the owner path is taken.
+	uVS := bytes.Repeat([]byte{0x11}, 8)
+	uKS := bytes.Repeat([]byte{0x22}, 8)
+	userEntry := append(append(make([]byte, 32), uVS...), uKS...) // 48 bytes
+
+	oVS := bytes.Repeat([]byte{0x33}, 8)
+	oKS := bytes.Repeat([]byte{0x44}, 8)
+	oValHash, err := v5Hash(password, oVS, userEntry, R)
+	if err != nil {
+		t.Fatalf("v5Hash(owner validation): %v", err)
+	}
+	oKeyHash, err := v5Hash(password, oKS, userEntry, R)
+	if err != nil {
+		t.Fatalf("v5Hash(owner key): %v", err)
+	}
+	oe := aesCBCEncryptRaw(t, oKeyHash, make([]byte, aes.BlockSize), fileKey)
+	ownerEntry := append(append(append([]byte{}, oValHash...), oVS...), oKS...)
+
+	p := Params{
+		V: 5, R: R,
+		UserEntry:  userEntry,
+		OwnerEntry: ownerEntry,
+		UE:         make([]byte, 32), // present but never reached
+		OE:         oe,
+	}
+	key, err := computeV5Key(p, password)
+	if err != nil {
+		t.Fatalf("computeV5Key: %v", err)
+	}
+	if !bytes.Equal(key, fileKey) {
+		t.Fatalf("owner-path key mismatch:\n got %x\nwant %x", key, fileKey)
+	}
+}
+
+func TestComputeV5KeyWrongPassword(t *testing.T) {
+	p := Params{
+		V: 5, R: 6,
+		UserEntry:  bytes.Repeat([]byte{0x01}, 48),
+		OwnerEntry: bytes.Repeat([]byte{0x02}, 48),
+		UE:         bytes.Repeat([]byte{0x03}, 32),
+		OE:         bytes.Repeat([]byte{0x04}, 32),
+	}
+	overlong := bytes.Repeat([]byte{'z'}, 200) // > 127: exercises the spec truncation
+	if _, err := computeV5Key(p, overlong); err == nil {
+		t.Fatal("expected an error for a non-matching password, got nil")
+	}
+}

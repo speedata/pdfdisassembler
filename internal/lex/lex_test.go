@@ -1,6 +1,7 @@
 package lex
 
 import (
+	"bytes"
 	"testing"
 )
 
@@ -198,4 +199,23 @@ func FuzzLexer(f *testing.F) {
 			}
 		}
 	})
+}
+
+// Position accessors that back the xref reader's manual seeking.
+func TestLexerAccessors(t *testing.T) {
+	src := []byte("hello world")
+	lx := New(src)
+	if lx.Pos() != 0 {
+		t.Errorf("initial Pos = %d, want 0", lx.Pos())
+	}
+	if !bytes.Equal(lx.Source(), src) {
+		t.Errorf("Source = %q, want %q", lx.Source(), src)
+	}
+	lx.SetPos(6)
+	if lx.Pos() != 6 {
+		t.Errorf("Pos after SetPos(6) = %d, want 6", lx.Pos())
+	}
+	if got := lx.Remaining(); string(got) != "world" {
+		t.Errorf("Remaining = %q, want world", got)
+	}
 }

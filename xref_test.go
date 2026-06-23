@@ -412,3 +412,31 @@ func TestClassicalXrefHugeCountRecovers(t *testing.T) {
 		t.Fatalf("Catalog: %v", err)
 	}
 }
+
+// CR/LF/CRLF line-ending handling for the classical xref reader (§7.5.4).
+func TestSkipEOL(t *testing.T) {
+	cases := []struct {
+		name string
+		buf  string
+		pos  int
+		want int
+	}{
+		{"crlf", "\r\nX", 0, 2},
+		{"lf", "\nX", 0, 1},
+		{"lone_cr", "\rX", 0, 1},
+		{"cr_at_eof", "\r", 0, 1},
+		{"leading_spaces_then_lf", "  \nX", 0, 3},
+		{"tab_then_crlf", "\t\r\n", 0, 3},
+		{"non_whitespace_stays_put", "Xyz", 0, 0},
+		{"spaces_then_eof", "  ", 0, 2},
+		{"empty", "", 0, 0},
+		{"pos_already_past_end", "ab", 2, 2},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := skipEOL([]byte(tc.buf), tc.pos); got != tc.want {
+				t.Errorf("skipEOL(%q, %d) = %d, want %d", tc.buf, tc.pos, got, tc.want)
+			}
+		})
+	}
+}
