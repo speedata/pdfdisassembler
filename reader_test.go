@@ -463,3 +463,161 @@ func TestStreamLengthRejectsBadLength(t *testing.T) {
 		}
 	})
 }
+
+// A bare Reader works because a non-Reference value resolves to itself; each
+// helper must error on the wrong type, not pass back a zero value as success.
+func TestResolveHelperTypeErrors(t *testing.T) {
+	r := &Reader{}
+	errCases := []struct {
+		name string
+		call func() error
+	}{
+		{"dict_from_int", func() error { _, e := r.ResolveDict(Integer(1)); return e }},
+		{"dict_from_null", func() error { _, e := r.ResolveDict(Null{}); return e }},
+		{"dict_from_nil", func() error { _, e := r.ResolveDict(nil); return e }},
+		{"bool_from_int", func() error { _, e := r.ResolveBool(Integer(1)); return e }},
+		{"int_from_bool", func() error { _, e := r.ResolveInt(Bool(true)); return e }},
+		{"array_from_int", func() error { _, e := r.ResolveArray(Integer(1)); return e }},
+		{"stream_from_int", func() error { _, e := r.DecodeStream(Integer(1)); return e }},
+	}
+	for _, tc := range errCases {
+		if tc.call() == nil {
+			t.Errorf("%s: expected an error, got nil", tc.name)
+		}
+	}
+	// Controls: the right type resolves cleanly.
+	if b, err := r.ResolveBool(Bool(true)); err != nil || !b {
+		t.Errorf("ResolveBool(true) = %v, %v", b, err)
+	}
+	if n, err := r.ResolveInt(Integer(7)); err != nil || n != 7 {
+		t.Errorf("ResolveInt(7) = %v, %v", n, err)
+	}
+	if a, err := r.ResolveArray(Array{Integer(1)}); err != nil || len(a) != 1 {
+		t.Errorf("ResolveArray = %v, %v", a, err)
+	}
+}
+
+// OpenFile must surface the os.Open error for a missing path, and must not leak
+// the descriptor when the file opens but doesn't parse as a PDF.
+func TestOpenFileErrors(t *testing.T) {
+	if _, err := OpenFile(filepath.Join(t.TempDir(), "missing.pdf")); err == nil {
+		t.Error("OpenFile(missing) should error")
+	}
+	bad := filepath.Join(t.TempDir(), "bad.pdf")
+	if err := os.WriteFile(bad, []byte("not a pdf"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := OpenFile(bad); err == nil {
+		t.Error("OpenFile(garbage) should error")
+	}
+}
+
+func TestXrefFormat(t *testing.T) {
+	withTrailer := func(set func(d *Dict)) *Reader {
+		d := newDict(nil)
+		set(d)
+		return &Reader{trailer: d}
+	}
+	if got := (&Reader{}).xrefFormat(); got != "unknown" {
+		t.Errorf("nil trailer = %q, want unknown", got)
+	}
+	if got := withTrailer(func(d *Dict) { d.set("Type", Name("XRef")) }).xrefFormat(); got != "stream" {
+		t.Errorf("/Type /XRef = %q, want stream", got)
+	}
+	if got := withTrailer(func(d *Dict) { d.set("XRefStm", Integer(99)) }).xrefFormat(); got != "hybrid" {
+		t.Errorf("/XRefStm = %q, want hybrid", got)
+	}
+	if got := withTrailer(func(d *Dict) { d.set("Size", Integer(4)) }).xrefFormat(); got != "classical" {
+		t.Errorf("plain trailer = %q, want classical", got)
+	}
+}
+
+// Non-standard /Info keys land in Custom; a non-string entry is skipped, not
+// rendered.
+func TestDocumentInfoRichFields(t *testing.T) {
+	var buf bytes.Buffer
+	off := func() int { return buf.Len() }
+	fmt.Fprint(&buf, "%PDF-1.7\n%\xE2\xE3\xCF\xD3\n")
+	offsets := make([]int, 4)
+	offsets[1] = off()
+	fmt.Fprint(&buf, "1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n")
+	offsets[2] = off()
+	fmt.Fprint(&buf, "2 0 obj\n<< /Type /Pages /Count 0 /Kids [] >>\nendobj\n")
+	offsets[3] = off()
+	fmt.Fprint(&buf, "3 0 obj\n<< /Author (Ada) /Subject (Math) /Keywords (a,b) "+
+		"/Creator (X) /Producer (Y) /CreationDate (D:20200102030405Z) "+
+		"/ModDate (D:20210102030405Z) /Custom (cval) /NotAString 42 >>\nendobj\n")
+	xrefOff := off()
+	fmt.Fprint(&buf, "xref\n0 4\n")
+	fmt.Fprintf(&buf, "%010d %05d f \n", 0, 65535)
+	for i := 1; i <= 3; i++ {
+		fmt.Fprintf(&buf, "%010d %05d n \n", offsets[i], 0)
+	}
+	fmt.Fprint(&buf, "trailer\n<< /Size 4 /Root 1 0 R /Info 3 0 R >>\n")
+	fmt.Fprintf(&buf, "startxref\n%d\n%%%%EOF\n", xrefOff)
+
+	r, err := Open(bytes.NewReader(buf.Bytes()))
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	defer r.Close()
+	info := r.DocumentInfo()
+	if info.Author != "Ada" || info.Subject != "Math" || info.Keywords != "a,b" ||
+		info.Creator != "X" || info.Producer != "Y" {
+		t.Errorf("string fields wrong: %+v", info)
+	}
+	if info.CreationDate.Year() != 2020 || info.ModDate.Year() != 2021 {
+		t.Errorf("dates wrong: created %v, mod %v", info.CreationDate, info.ModDate)
+	}
+	if info.Custom["Custom"] != "cval" {
+		t.Errorf("Custom[Custom] = %q, want cval", info.Custom["Custom"])
+	}
+	if _, ok := info.Custom["NotAString"]; ok {
+		t.Error("non-string /NotAString should be skipped, not collected")
+	}
+}
+
+func TestObjectsIteration(t *testing.T) {
+	r, err := Open(bytes.NewReader(buildMinimalPDF(t)))
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	defer r.Close()
+	var nums []int
+	for e := range r.Objects() {
+		nums = append(nums, e.Reference.Number)
+	}
+	if len(nums) < 4 {
+		t.Fatalf("iterated %d objects, want >= 4", len(nums))
+	}
+	for i := 1; i < len(nums); i++ {
+		if nums[i] < nums[i-1] {
+			t.Errorf("objects out of order: %d before %d", nums[i-1], nums[i])
+		}
+	}
+	count := 0
+	for range r.Objects() {
+		count++
+		break
+	}
+	if count != 1 {
+		t.Fatalf("early break iterated %d, want 1", count)
+	}
+}
+
+// A reference to an object absent from the xref table resolves to null per
+// §7.3.10, not an error.
+func TestResolveDanglingReference(t *testing.T) {
+	r, err := Open(bytes.NewReader(buildMinimalPDF(t)))
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	defer r.Close()
+	v, err := r.Resolve(Reference{Number: 99})
+	if err != nil {
+		t.Fatalf("dangling ref: %v", err)
+	}
+	if _, ok := v.(Null); !ok {
+		t.Errorf("dangling ref = %T, want Null", v)
+	}
+}

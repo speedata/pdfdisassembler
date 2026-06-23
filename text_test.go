@@ -95,3 +95,32 @@ func TestParseDate(t *testing.T) {
 		t.Errorf("tz parse = %v, want %v", got, want)
 	}
 }
+
+// looksLikeText drives the dump heuristic that decides whether a string is
+// rendered inline or hex-escaped: BOMs and ASCII are text; control bytes are
+// not; high bytes are text only if they decode cleanly under PDFDocEncoding
+// (0x80 = bullet) and not when they hit an undefined slot (0x9F).
+func TestLooksLikeText(t *testing.T) {
+	cases := []struct {
+		name string
+		in   String
+		want bool
+	}{
+		{"utf16be_bom", String{0xFE, 0xFF, 0, 'A'}, true},
+		{"utf16le_bom", String{0xFF, 0xFE, 'A', 0}, true},
+		{"utf8_bom", String{0xEF, 0xBB, 0xBF, 'h', 'i'}, true},
+		{"ascii", String("Hello, World!"), true},
+		{"ascii_with_whitespace", String("a\tb\r\nc"), true},
+		{"control_byte", String{'a', 0x01, 'b'}, false},
+		{"del_byte", String{0x7F}, false},
+		{"pdfdoc_high_clean", String{0x80}, true},
+		{"pdfdoc_high_undefined", String{0x9F}, false},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			if got := looksLikeText(c.in); got != c.want {
+				t.Errorf("looksLikeText(% x) = %v, want %v", c.in, got, c.want)
+			}
+		})
+	}
+}
