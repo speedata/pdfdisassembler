@@ -444,7 +444,10 @@ func (r *Reader) readCompressedObject(objStmNum, idx int, expect Reference) (Obj
 		num    int
 		offset int
 	}
-	pairs := make([]pair, 0, n)
+	// /N is attacker-controlled and only loosely bounded by len(content); a huge
+	// value must not preallocate — append grows pairs to the real entry count.
+	const maxObjStmPrealloc = 1 << 12
+	pairs := make([]pair, 0, min(int(n), maxObjStmPrealloc))
 	for i := int64(0); i < n; i++ {
 		t1, err := lx.Next()
 		if err != nil || t1.Kind != lex.Integer {
