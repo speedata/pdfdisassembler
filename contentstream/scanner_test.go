@@ -389,3 +389,78 @@ func TestOperandIntEdgeCases(t *testing.T) {
 		t.Error("overflowing integer literal yielded an int")
 	}
 }
+
+// readInlineImage must error, not panic, on a malformed BI block.
+func TestInlineImageErrors(t *testing.T) {
+	for _, src := range []string{
+		"BI /W 1",            // EOF before ID
+		"BI 5 ID x EI",       // non-name key before ID
+		"BI /W ] ID x EI",    // bad entry value
+		"BI /W 1 ID abcdefg", // no EI terminator before EOF
+	} {
+		t.Run(src, func(t *testing.T) {
+			if _, err := contentstream.New([]byte(src)).Next(); err == nil {
+				t.Fatal("expected an error, got nil")
+			}
+		})
+	}
+}
+
+func TestNextStrayDelimiter(t *testing.T) {
+	for _, src := range []string{"]", ">>"} {
+		if _, err := contentstream.New([]byte(src)).Next(); err == nil {
+			t.Errorf("%q: expected an error, got nil", src)
+		}
+	}
+}
+
+// Breaking out of the All range mid-iteration must stop cleanly (the
+// yield-returned-false path).
+func TestAllEarlyBreak(t *testing.T) {
+	sc := contentstream.New([]byte("q Q q"))
+	n := 0
+	for op, err := range sc.All() {
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		_ = op
+		n++
+		break
+	}
+	if n != 1 {
+		t.Fatalf("iterated %d ops, want 1 before break", n)
+	}
+}
+
+// Operands left on the stack at EOF with no trailing operator are dropped, not
+// emitted as a bogus op.
+func TestTrailingOperandsDropped(t *testing.T) {
+	if ops := collect(t, "1 2 3"); len(ops) != 0 {
+		t.Fatalf("got %d ops, want 0 (operands without an operator are dropped)", len(ops))
+	}
+}
+
+func TestReadDictStructuralErrors(t *testing.T) {
+	for _, src := range []string{
+		"/X << 1 2 >> BDC", // key is not a name
+		"/X << /K 1",       // EOF before '>>'
+	} {
+		t.Run(src, func(t *testing.T) {
+			if _, err := contentstream.New([]byte(src)).Next(); err == nil {
+				t.Fatal("expected an error, got nil")
+			}
+		})
+	}
+}
+
+// An "EI" that appears in the image data without a whitespace boundary must be
+// skipped; scanning continues to the real, whitespace-delimited terminator.
+func TestInlineImageFakeEIInData(t *testing.T) {
+	ops := collect(t, "BI ID aEIb EI Q")
+	if len(ops) < 1 || ops[0].Operator != "EI" {
+		t.Fatalf("want EI op first, got %+v", ops)
+	}
+	if string(ops[0].Image) != "aEIb" {
+		t.Errorf("image = %q, want aEIb", ops[0].Image)
+	}
+}

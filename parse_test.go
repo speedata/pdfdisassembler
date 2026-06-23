@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+
+	"github.com/speedata/pdfdisassembler/internal/lex"
 )
 
 // buildPDFWithObjectBody puts body as object 3 in a minimal classical-xref PDF.
@@ -66,5 +68,25 @@ func TestModeratelyNestedArrayResolves(t *testing.T) {
 	}
 	if _, ok := obj.(Array); !ok {
 		t.Fatalf("got %T, want Array", obj)
+	}
+}
+
+// Malformed token streams must error, never panic.
+func TestParseObjectErrors(t *testing.T) {
+	for _, src := range []string{
+		"",          // EOF where an object is expected
+		"]",         // stray ArrayEnd
+		">>",        // stray DictEnd
+		"foo",       // unexpected keyword
+		"[ 1 2",     // unterminated array
+		"<< /K 1",   // unterminated dict
+		"<< 1 2 >>", // dict key is not a name
+	} {
+		t.Run(src, func(t *testing.T) {
+			p := newParser(lex.New([]byte(src)), nil)
+			if _, err := p.parseObject(); err == nil {
+				t.Fatal("expected an error, got nil")
+			}
+		})
 	}
 }

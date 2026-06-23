@@ -130,3 +130,50 @@ func TestParamsFromDict(t *testing.T) {
 		t.Errorf("empty dict = %+v, want zero Params", empty)
 	}
 }
+
+// /F and /DP are the /Filter and /DecodeParms abbreviations; a null /DP entry
+// leaves that filter with default params.
+func TestStreamFilterChainAbbreviations(t *testing.T) {
+	orig := []byte("abbreviated filter keys decode the same")
+	var fl bytes.Buffer
+	zw := zlib.NewWriter(&fl)
+	zw.Write(orig)
+	zw.Close()
+	a85 := make([]byte, ascii85.MaxEncodedLen(fl.Len()))
+	n := ascii85.Encode(a85, fl.Bytes())
+	stream := append(a85[:n:n], '~', '>')
+
+	got := streamObject3(t, buildStreamObjectPDF(t,
+		"/F [ /ASCII85Decode /FlateDecode ] /DP [ null null ]", stream))
+	if !bytes.Equal(got, orig) {
+		t.Fatalf("abbreviated /F+/DP decode = %q, want %q", got, orig)
+	}
+}
+
+// A malformed or unsupported filter chain must surface an error from Content(),
+// not panic.
+func TestStreamFilterChainErrors(t *testing.T) {
+	cases := map[string]string{
+		"filter_wrong_type":      "/Filter 42",
+		"filter_array_bad_entry": "/Filter [ /FlateDecode 42 ]",
+		"image_only_filter":      "/Filter /DCTDecode",
+		"undecodable_data":       "/Filter /FlateDecode",
+	}
+	for name, dictEntries := range cases {
+		t.Run(name, func(t *testing.T) {
+			data := buildStreamObjectPDF(t, dictEntries, []byte("not valid filtered data"))
+			r, err := Open(bytes.NewReader(data))
+			if err != nil {
+				t.Fatalf("Open: %v", err)
+			}
+			defer r.Close()
+			v, err := r.Resolve(Reference{Number: 3, Generation: 0})
+			if err != nil {
+				t.Fatalf("Resolve: %v", err)
+			}
+			if _, err := v.(*Stream).Content(); err == nil {
+				t.Fatal("expected a Content() error, got nil")
+			}
+		})
+	}
+}

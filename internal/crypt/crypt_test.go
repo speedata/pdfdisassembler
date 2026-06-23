@@ -371,3 +371,63 @@ func TestComputeV5KeyWrongPassword(t *testing.T) {
 		t.Fatal("expected an error for a non-matching password, got nil")
 	}
 }
+
+// New must reject an unsupported /V rather than returning a zero handler.
+func TestNewUnsupportedVersion(t *testing.T) {
+	for _, v := range []int{0, 3, 99} {
+		if _, err := New(Params{V: v}, nil); err == nil {
+			t.Errorf("New(/V %d) should error", v)
+		}
+	}
+}
+
+// New drives the /V 5 branch end to end (AES-256 key derivation + algorithm
+// selection), not just computeV5Key in isolation.
+func TestNewV5(t *testing.T) {
+	const R = 6
+	password := []byte("v5-user")
+	fileKey := bytes.Repeat([]byte{0x42}, 32)
+	uVS := bytes.Repeat([]byte{0x01}, 8)
+	uKS := bytes.Repeat([]byte{0x02}, 8)
+	uValHash, err := v5Hash(password, uVS, nil, R)
+	if err != nil {
+		t.Fatalf("v5Hash(validation): %v", err)
+	}
+	kHash, err := v5Hash(password, uKS, nil, R)
+	if err != nil {
+		t.Fatalf("v5Hash(key): %v", err)
+	}
+	ue := aesCBCEncryptRaw(t, kHash, make([]byte, aes.BlockSize), fileKey)
+	userEntry := append(append(append([]byte{}, uValHash...), uVS...), uKS...)
+
+	h, err := New(Params{
+		V: 5, R: R,
+		UserEntry:  userEntry,
+		OwnerEntry: make([]byte, 48),
+		UE:         ue,
+		OE:         make([]byte, 32),
+	}, password)
+	if err != nil {
+		t.Fatalf("New(V5): %v", err)
+	}
+	if !bytes.Equal(h.FileKey, fileKey) {
+		t.Fatal("V5 file key mismatch")
+	}
+	if h.StreamAlg != AlgAES256 {
+		t.Errorf("StreamAlg = %v, want AlgAES256", h.StreamAlg)
+	}
+}
+
+// A per-stream Identity crypt filter overrides the default algorithm and passes
+// the bytes through unchanged.
+func TestDecryptStreamIdentityOverride(t *testing.T) {
+	h := &Handler{StreamAlg: AlgRC4, FileKey: bytes.Repeat([]byte{1}, 16)}
+	data := []byte("plaintext")
+	out, err := h.DecryptStream(data, 1, 0, "Identity")
+	if err != nil {
+		t.Fatalf("DecryptStream: %v", err)
+	}
+	if !bytes.Equal(out, data) {
+		t.Errorf("Identity override = %q, want %q", out, data)
+	}
+}
