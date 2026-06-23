@@ -345,3 +345,49 @@ func TestReadDictValueErrors(t *testing.T) {
 		})
 	}
 }
+
+// readArray must accept every element kind, including the ones TJ rarely uses
+// (name, bool, null, nested array, nested dict), each with the right Kind.
+func TestArrayMixedElementKinds(t *testing.T) {
+	ops := collect(t, "[42 3.14 /Nm (s) <41> true false null [1 2] << /K 9 >>] TJ")
+	if len(ops) != 1 || ops[0].Operator != "TJ" {
+		t.Fatalf("want one TJ op, got %+v", ops)
+	}
+	got := ops[0].Operands[0].Array
+	wantKinds := []contentstream.Kind{
+		contentstream.KindNumber, contentstream.KindNumber, contentstream.KindName,
+		contentstream.KindString, contentstream.KindString, contentstream.KindBool,
+		contentstream.KindBool, contentstream.KindNull, contentstream.KindArray,
+		contentstream.KindDict,
+	}
+	if len(got) != len(wantKinds) {
+		t.Fatalf("array len = %d, want %d", len(got), len(wantKinds))
+	}
+	for i, want := range wantKinds {
+		if got[i].Kind != want {
+			t.Errorf("element %d Kind = %v, want %v", i, got[i].Kind, want)
+		}
+	}
+}
+
+// An unexpected keyword inside an array, and an unterminated array, must error.
+func TestArrayElementErrors(t *testing.T) {
+	for _, src := range []string{"[ foo ] n", "[1 2"} {
+		t.Run(src, func(t *testing.T) {
+			if _, err := contentstream.New([]byte(src)).Next(); err == nil {
+				t.Fatal("expected an error, got nil")
+			}
+		})
+	}
+}
+
+// Int reports ok=false for a non-number operand and for an integer literal too
+// large for int64, rather than returning a wrapped value.
+func TestOperandIntEdgeCases(t *testing.T) {
+	if _, ok := collect(t, "/Name n")[0].Operands[0].Int(); ok {
+		t.Error("name operand yielded an int")
+	}
+	if _, ok := collect(t, "99999999999999999999999999 n")[0].Operands[0].Int(); ok {
+		t.Error("overflowing integer literal yielded an int")
+	}
+}

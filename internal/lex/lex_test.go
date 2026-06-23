@@ -219,3 +219,72 @@ func TestLexerAccessors(t *testing.T) {
 		t.Errorf("Remaining = %q, want world", got)
 	}
 }
+
+// Escape and newline handling in literal strings (§7.3.4.2) beyond the cases in
+// TestLexerLiteralString: the \r\t\b\f escapes, backslash-CR/CRLF continuations,
+// unknown escapes (backslash dropped), and bare CR/CRLF normalised to LF.
+func TestLexerLiteralStringEscapes(t *testing.T) {
+	cases := []struct {
+		name, in, want string
+	}{
+		{"named_escapes", "(\\t\\b\\f\\r)", "\t\b\f\r"},
+		{"cr_line_continuation", "(a\\\rb)", "ab"},
+		{"crlf_line_continuation", "(a\\\r\nb)", "ab"},
+		{"unknown_escape_keeps_char", "(\\q)", "q"},
+		{"bare_cr_to_lf", "(a\rb)", "a\nb"},
+		{"bare_crlf_to_lf", "(a\r\nb)", "a\nb"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			tok, err := New([]byte(c.in)).Next()
+			if err != nil {
+				t.Fatalf("Next: %v", err)
+			}
+			if tok.Kind != LitString {
+				t.Fatalf("kind = %v, want LitString", tok.Kind)
+			}
+			if string(tok.Bytes) != c.want {
+				t.Errorf("got %q, want %q", tok.Bytes, c.want)
+			}
+		})
+	}
+}
+
+// A trailing backslash and an unterminated string must error, not read past the
+// buffer.
+func TestLexerLiteralStringErrors(t *testing.T) {
+	for _, in := range []string{"(\\", "(abc"} {
+		if _, err := New([]byte(in)).Next(); err == nil {
+			t.Errorf("%q: expected an error, got nil", in)
+		}
+	}
+}
+
+// IsDelimiter / IsWhitespace partition the special bytes per §7.2.2; a
+// misclassified byte would break tokenisation, so pin the delimiter set.
+func TestIsDelimiter(t *testing.T) {
+	for _, c := range []byte("()<>[]{}/%") {
+		if !IsDelimiter(c) {
+			t.Errorf("IsDelimiter(%q) = false, want true", c)
+		}
+	}
+	for _, c := range []byte("aZ0 \t.\\") {
+		if IsDelimiter(c) {
+			t.Errorf("IsDelimiter(%q) = true, want false", c)
+		}
+	}
+}
+
+func TestHexDigit(t *testing.T) {
+	valid := map[byte]int{'0': 0, '9': 9, 'a': 10, 'f': 15, 'A': 10, 'F': 15}
+	for c, want := range valid {
+		if v, ok := hexDigit(c); !ok || v != want {
+			t.Errorf("hexDigit(%q) = (%d, %v), want (%d, true)", c, v, ok, want)
+		}
+	}
+	for _, c := range []byte("gG/ \x00") {
+		if _, ok := hexDigit(c); ok {
+			t.Errorf("hexDigit(%q) = ok, want not-ok", c)
+		}
+	}
+}

@@ -440,3 +440,24 @@ func TestSkipEOL(t *testing.T) {
 		})
 	}
 }
+
+// indexEOL finds the first CR or LF at/after pos, or -1 when the rest of the
+// buffer has none.
+func TestIndexEOL(t *testing.T) {
+	cases := []struct {
+		buf  string
+		pos  int
+		want int
+	}{
+		{"ab\ncd", 0, 2},
+		{"ab\rcd", 0, 2},
+		{"abcd", 0, -1},
+		{"a\nb", 2, -1},
+		{"", 0, -1},
+	}
+	for _, tc := range cases {
+		if got := indexEOL([]byte(tc.buf), tc.pos); got != tc.want {
+			t.Errorf("indexEOL(%q, %d) = %d, want %d", tc.buf, tc.pos, got, tc.want)
+		}
+	}
+}
