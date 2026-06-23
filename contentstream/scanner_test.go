@@ -345,3 +345,47 @@ func TestReadDictValueErrors(t *testing.T) {
 		})
 	}
 }
+
+// Every readArray element kind, including the ones TJ rarely uses (bool, null,
+// name, nested array/dict).
+func TestArrayMixedElementKinds(t *testing.T) {
+	ops := collect(t, "[42 3.14 /Nm (s) <41> true false null [1 2] << /K 9 >>] TJ")
+	if len(ops) != 1 || ops[0].Operator != "TJ" {
+		t.Fatalf("want one TJ op, got %+v", ops)
+	}
+	got := ops[0].Operands[0].Array
+	wantKinds := []contentstream.Kind{
+		contentstream.KindNumber, contentstream.KindNumber, contentstream.KindName,
+		contentstream.KindString, contentstream.KindString, contentstream.KindBool,
+		contentstream.KindBool, contentstream.KindNull, contentstream.KindArray,
+		contentstream.KindDict,
+	}
+	if len(got) != len(wantKinds) {
+		t.Fatalf("array len = %d, want %d", len(got), len(wantKinds))
+	}
+	for i, want := range wantKinds {
+		if got[i].Kind != want {
+			t.Errorf("element %d Kind = %v, want %v", i, got[i].Kind, want)
+		}
+	}
+}
+
+func TestArrayElementErrors(t *testing.T) {
+	for _, src := range []string{"[ foo ] n", "[1 2"} { // bad keyword in array; unterminated
+		t.Run(src, func(t *testing.T) {
+			if _, err := contentstream.New([]byte(src)).Next(); err == nil {
+				t.Fatal("expected an error, got nil")
+			}
+		})
+	}
+}
+
+// Int must report ok=false on int64 overflow (not silently wrap) and for non-numbers.
+func TestOperandIntEdgeCases(t *testing.T) {
+	if _, ok := collect(t, "/Name n")[0].Operands[0].Int(); ok {
+		t.Error("name operand yielded an int")
+	}
+	if _, ok := collect(t, "99999999999999999999999999 n")[0].Operands[0].Int(); ok {
+		t.Error("overflowing integer literal yielded an int")
+	}
+}
