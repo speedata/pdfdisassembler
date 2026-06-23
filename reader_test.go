@@ -431,3 +431,35 @@ func TestVersionCatalogOverride(t *testing.T) {
 		t.Errorf("Version = %q, want 2.0 (catalog override)", v)
 	}
 }
+
+// A non-Reference /Length resolves to itself, so a bare Reader (no xref) drives
+// the missing/non-integer/negative guards directly.
+func TestStreamLengthRejectsBadLength(t *testing.T) {
+	r := &Reader{}
+	bad := []struct {
+		name string
+		set  func(d *Dict)
+	}{
+		{"missing", func(d *Dict) {}},
+		{"non_integer", func(d *Dict) { d.set("Length", String("x")) }},
+		{"negative", func(d *Dict) { d.set("Length", Integer(-5)) }},
+	}
+	for _, tc := range bad {
+		t.Run(tc.name, func(t *testing.T) {
+			d := newDict(nil)
+			tc.set(d)
+			if _, err := r.streamLength(d); err == nil {
+				t.Fatal("expected an error, got nil")
+			}
+		})
+	}
+
+	// Control: a valid non-negative /Length must still resolve.
+	t.Run("valid", func(t *testing.T) {
+		d := newDict(nil)
+		d.set("Length", Integer(42))
+		if n, err := r.streamLength(d); err != nil || n != 42 {
+			t.Fatalf("streamLength = %d, %v; want 42, nil", n, err)
+		}
+	})
+}

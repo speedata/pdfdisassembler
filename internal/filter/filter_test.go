@@ -5,6 +5,7 @@ import (
 	"compress/lzw"
 	"compress/zlib"
 	"encoding/ascii85"
+	"errors"
 	"fmt"
 	"testing"
 )
@@ -395,4 +396,39 @@ func FuzzDecode(f *testing.F) {
 			_, _ = Decode(name, data, p)
 		}
 	})
+}
+
+// Expected values hand-computed from PNG §6.6 (not copied from output).
+// paeth(0,0,10) makes p=a+b-c negative — the one vector here that reaches
+// abs's negative branch; don't drop it.
+func TestPaeth(t *testing.T) {
+	cases := []struct {
+		a, b, c, want byte
+	}{
+		{0, 0, 0, 0},
+		{1, 2, 3, 1},     // p=0: pa=1 pb=2 pc=3 -> a
+		{255, 0, 0, 255}, // p=255: pa=0 -> a
+		{0, 0, 10, 0},    // p=-10: pa=10 pb=10 pc=20 -> a (negative estimate)
+		{10, 20, 11, 20}, // p=19: pa=9 pb=1 pc=8 -> b
+		{0, 10, 6, 6},    // p=4: pa=4 pb=6 pc=2 -> c
+	}
+	for _, tc := range cases {
+		if got := paeth(tc.a, tc.b, tc.c); got != tc.want {
+			t.Errorf("paeth(%d,%d,%d) = %d, want %d", tc.a, tc.b, tc.c, got, tc.want)
+		}
+	}
+}
+
+func TestErrUnsupported(t *testing.T) {
+	_, err := Decode("DCTDecode", []byte("x"), Params{})
+	var unsup ErrUnsupported
+	if !errors.As(err, &unsup) {
+		t.Fatalf("Decode(DCTDecode) error = %v, want ErrUnsupported", err)
+	}
+	if unsup.Name != "DCTDecode" {
+		t.Errorf("ErrUnsupported.Name = %q, want DCTDecode", unsup.Name)
+	}
+	if want := `pdfdisassembler/filter: unsupported filter "DCTDecode"`; unsup.Error() != want {
+		t.Errorf("Error() = %q, want %q", unsup.Error(), want)
+	}
 }
