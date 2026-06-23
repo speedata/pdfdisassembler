@@ -117,9 +117,7 @@ func parseDate(s string) time.Time {
 	if s == "" {
 		return time.Time{}
 	}
-	if strings.HasPrefix(s, "D:") {
-		s = s[2:]
-	}
+	s = strings.TrimPrefix(s, "D:")
 	// Defaults per spec: month/day = 01, time = 00, offset = UTC.
 	year, month, day := 0, 1, 1
 	hour, minute, second := 0, 0, 0
