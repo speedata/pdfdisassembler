@@ -71,7 +71,7 @@ func TestModeratelyNestedArrayResolves(t *testing.T) {
 	}
 }
 
-// Malformed token streams must error, never panic (cases labelled inline).
+// Malformed token streams must error, never panic.
 func TestParseObjectErrors(t *testing.T) {
 	for _, src := range []string{
 		"",          // EOF where an object is expected

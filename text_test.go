@@ -96,10 +96,9 @@ func TestParseDate(t *testing.T) {
 	}
 }
 
-// looksLikeText drives the dump heuristic that decides whether a string is
-// rendered inline or hex-escaped: BOMs and ASCII are text; control bytes are
-// not; high bytes are text only if they decode cleanly under PDFDocEncoding
-// (0x80 = bullet) and not when they hit an undefined slot (0x9F).
+// The dump heuristic for rendering a string inline vs hex-escaped. The
+// high-byte cases are the subtle ones: 0x80 is a clean PDFDocEncoding glyph
+// (bullet), 0x9F an undefined slot.
 func TestLooksLikeText(t *testing.T) {
 	cases := []struct {
 		name string
