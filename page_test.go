@@ -215,6 +215,96 @@ func TestPageBoxMalformed(t *testing.T) {
 	}
 }
 
+func TestPageNonInheritableBoxes(t *testing.T) {
+	// An intermediate /Pages node carrying BleedBox/TrimBox/ArtBox must NOT
+	// leak those into descendant leaves — only MediaBox/CropBox are inheritable
+	// (PDF 32000-1:2008 Table 30). The leaf's own TrimBox is still reported.
+	data := buildDictPDF(t, []string{
+		"<< /Type /Catalog /Pages 2 0 R >>",
+		"<< /Type /Pages /Count 1 /Kids [ 3 0 R ] /MediaBox [0 0 612 792] /CropBox [1 1 611 791] /BleedBox [2 2 610 790] /TrimBox [3 3 609 789] /ArtBox [4 4 608 788] >>",
+		"<< /Type /Page /Parent 2 0 R /TrimBox [9 9 100 100] >>",
+	})
+	r, err := Open(bytes.NewReader(data))
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	defer r.Close()
+	p, _ := r.Page(0)
+
+	// Inheritable: come from the ancestor /Pages node.
+	if box, ok := p.Box(MediaBox); !ok || box != (Rect{0, 0, 612, 792}) {
+		t.Errorf("MediaBox = %+v ok=%v, want inherited {0 0 612 792}", box, ok)
+	}
+	if box, ok := p.Box(CropBox); !ok || box != (Rect{1, 1, 611, 791}) {
+		t.Errorf("CropBox = %+v ok=%v, want inherited {1 1 611 791}", box, ok)
+	}
+	// Non-inheritable: ancestor values must not appear.
+	if box, ok := p.Box(BleedBox); ok {
+		t.Errorf("BleedBox = %+v, want absent (not inheritable)", box)
+	}
+	if box, ok := p.Box(ArtBox); ok {
+		t.Errorf("ArtBox = %+v, want absent (not inheritable)", box)
+	}
+	// The leaf's own TrimBox is reported, not the ancestor's.
+	if box, ok := p.Box(TrimBox); !ok || box != (Rect{9, 9, 100, 100}) {
+		t.Errorf("TrimBox = %+v ok=%v, want page-level {9 9 100 100}", box, ok)
+	}
+	if boxes := p.Boxes(); len(boxes) != 3 {
+		t.Errorf("Boxes = %v, want 3 (Media, Crop, Trim)", boxes)
+	}
+}
+
+func TestPageContentsArrayBrokenEntryErrors(t *testing.T) {
+	// /Contents references object 5, which is absent from the xref and so
+	// resolves to null. ContentStreams/Content must fail rather than silently
+	// return a truncated stream.
+	data := buildDictPDF(t, []string{
+		"<< /Type /Catalog /Pages 2 0 R >>",
+		"<< /Type /Pages /Count 1 /Kids [ 3 0 R ] >>",
+		"<< /Type /Page /Parent 2 0 R /Contents [ 4 0 R 5 0 R ] >>",
+		"<< /Length 5 >>\nstream\nhello\nendstream",
+	})
+	r, err := Open(bytes.NewReader(data))
+	if err != nil {
+		t.Fatalf("Open: %v", err)
+	}
+	defer r.Close()
+	p, _ := r.Page(0)
+	if streams, err := p.ContentStreams(); err == nil {
+		t.Errorf("ContentStreams = %v, want error for missing entry", streams)
+	}
+	if got, err := p.Content(); err == nil {
+		t.Errorf("Content = %q, want error for missing entry", got)
+	}
+}
+
+func TestPagesPhantomLeafGuard(t *testing.T) {
+	// The root /Pages node declares /Count but its /Kids fails to resolve
+	// (object 9 is absent). It must not be emitted as a phantom leaf page.
+	for _, root := range []string{
+		"<< /Type /Pages /Count 1 /Kids 9 0 R >>", // unresolvable /Kids ref
+		"<< /Type /Pages /Count 1 >>",             // no /Kids at all
+		"<< /Type /Pages >>",                      // /Type-only intermediate
+	} {
+		data := buildDictPDF(t, []string{
+			"<< /Type /Catalog /Pages 2 0 R >>",
+			root,
+		})
+		r, err := Open(bytes.NewReader(data))
+		if err != nil {
+			t.Fatalf("Open(%s): %v", root, err)
+		}
+		n, err := r.PageCount()
+		if err != nil {
+			t.Fatalf("PageCount(%s): %v", root, err)
+		}
+		if n != 0 {
+			t.Errorf("root %s: PageCount = %d, want 0 (no phantom leaf)", root, n)
+		}
+		r.Close()
+	}
+}
+
 func TestPageIndexOutOfRange(t *testing.T) {
 	data := buildDictPDF(t, []string{
 		"<< /Type /Catalog /Pages 2 0 R >>",

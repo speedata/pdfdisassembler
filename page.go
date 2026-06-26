@@ -134,6 +134,16 @@ func (r *Reader) collectPages(node *Dict, seen map[Reference]struct{}, depth int
 	}
 	kids, ok := node.Array("Kids")
 	if !ok {
+		// No resolvable /Kids array. A node that still looks like an
+		// intermediate /Pages node — it declares /Type /Pages, /Count, or a
+		// /Kids key that failed to resolve — is a broken or empty branch, not a
+		// leaf page; emitting it would invent a phantom page.
+		if node.Has("Kids") || node.Has("Count") {
+			return
+		}
+		if t, ok := node.Name("Type"); ok && t == "Pages" {
+			return
+		}
 		*out = append(*out, &Page{reader: r, dict: node, index: len(*out)})
 		return
 	}
@@ -177,11 +187,21 @@ func (p *Page) inherited(key string) (Object, bool) {
 	return nil, false
 }
 
-// Box returns the named page boundary box, resolved through inheritance along
-// the /Parent chain. ok is false when neither the page nor any ancestor defines
-// the box, or its value is not a well-formed array of four numbers.
+// Box returns the named page boundary box. MediaBox and CropBox are resolved
+// through inheritance along the /Parent chain; BleedBox, TrimBox and ArtBox are
+// read from the page object only, since only MediaBox and CropBox carry the
+// (Inheritable) marker in PDF 32000-1:2008 Table 30 (§14.11.2). ok is false
+// when the box is not defined there, or its value is not a well-formed array of
+// four numbers. No spec-default substitution (e.g. a missing box defaulting to
+// CropBox) is applied.
 func (p *Page) Box(name BoxName) (Rect, bool) {
-	v, ok := p.inherited(string(name))
+	var v Object
+	var ok bool
+	if name == MediaBox || name == CropBox {
+		v, ok = p.inherited(string(name))
+	} else {
+		v, ok = p.dict.resolved(string(name))
+	}
 	if !ok {
 		return Rect{}, false
 	}
@@ -192,10 +212,11 @@ func (p *Page) Box(name BoxName) (Rect, bool) {
 	return rectFromArray(p.reader, arr)
 }
 
-// Boxes returns every boundary box defined for the page (after inheritance),
-// keyed by name. Boxes absent from both the page and its ancestors are omitted.
-// No spec-default substitution (e.g. a missing CropBox defaulting to MediaBox)
-// is applied: this reports what the document actually declares.
+// Boxes returns every boundary box defined for the page, keyed by name, with
+// the same per-box inheritance rules as Box (MediaBox and CropBox may be
+// inherited from an ancestor; BleedBox/TrimBox/ArtBox are page-level only).
+// Boxes that are not defined are omitted; no spec-default substitution (e.g. a
+// missing CropBox defaulting to MediaBox) is applied.
 func (p *Page) Boxes() map[BoxName]Rect {
 	out := map[BoxName]Rect{}
 	for _, name := range boxNames {
@@ -261,11 +282,16 @@ func (p *Page) ContentStreams() ([]*Stream, error) {
 		for _, e := range t {
 			s, err := p.reader.Resolve(e)
 			if err != nil {
-				continue
+				return nil, fmt.Errorf("pdfdisassembler: resolve /Contents entry: %w", err)
 			}
-			if stm, ok := s.(*Stream); ok {
-				out = append(out, stm)
+			stm, ok := s.(*Stream)
+			if !ok {
+				// A missing entry resolves to Null, not an error; dropping it
+				// would silently truncate the page's drawing instructions, so
+				// fail loudly instead.
+				return nil, fmt.Errorf("pdfdisassembler: /Contents array entry resolved to %T, want stream", s)
 			}
+			out = append(out, stm)
 		}
 	}
 	return out, nil

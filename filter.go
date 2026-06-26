@@ -10,20 +10,28 @@ import (
 // the file, applies decryption if enabled, then runs the declared filter
 // chain.
 func (r *Reader) decodeStream(s *Stream) ([]byte, error) {
-	if s.rawOffset < 0 || s.rawOffset+s.rawLength > int64(len(r.buf)) {
-		return nil, fmt.Errorf("pdfdisassembler: stream %d %d R: bytes out of range", s.objNumber, s.objGeneration)
+	raw, err := r.rawStreamSlice(s)
+	if err != nil {
+		return nil, err
 	}
-	raw := r.buf[s.rawOffset : s.rawOffset+s.rawLength]
 	return r.applyFilters(s, raw, true)
 }
 
-// rawStreamBytes returns a copy of the stream's raw bytes from the file buffer,
-// applying the same bounds check decodeStream uses.
-func (r *Reader) rawStreamBytes(s *Stream) ([]byte, error) {
+// rawStreamSlice returns the stream's raw bytes as a sub-slice of the file
+// buffer (no copy), after bounds-checking the declared extent.
+func (r *Reader) rawStreamSlice(s *Stream) ([]byte, error) {
 	if s.rawOffset < 0 || s.rawOffset+s.rawLength > int64(len(r.buf)) {
 		return nil, fmt.Errorf("pdfdisassembler: stream %d %d R: bytes out of range", s.objNumber, s.objGeneration)
 	}
-	raw := r.buf[s.rawOffset : s.rawOffset+s.rawLength]
+	return r.buf[s.rawOffset : s.rawOffset+s.rawLength], nil
+}
+
+// rawStreamBytes returns a copy of the stream's raw bytes (see Stream.RawBytes).
+func (r *Reader) rawStreamBytes(s *Stream) ([]byte, error) {
+	raw, err := r.rawStreamSlice(s)
+	if err != nil {
+		return nil, err
+	}
 	out := make([]byte, len(raw))
 	copy(out, raw)
 	return out, nil
