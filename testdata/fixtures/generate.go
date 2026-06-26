@@ -25,6 +25,8 @@ func main() {
 	write("minimal", minimalPDF())
 	write("xref-stream", xrefStreamPDF())
 	write("flate-stream", flateStreamPDF())
+	write("page-inheritance", pageInheritancePDF())
+	write("page-contents-array", pageContentsArrayPDF())
 }
 
 func write(name string, data []byte) {
@@ -100,6 +102,56 @@ func xrefStreamPDF() []byte {
 	fmt.Fprint(&buf, "\nendstream\nendobj\n")
 	fmt.Fprintf(&buf, "startxref\n%d\n%%%%EOF\n", xrefOff)
 	return buf.Bytes()
+}
+
+// classicalPDF assembles objs (1-based bodies) into a PDF with a classical
+// xref table and the given trailer dictionary body (without the surrounding
+// << >>).
+func classicalPDF(version string, objs []string, trailer string) []byte {
+	var buf bytes.Buffer
+	fmt.Fprintf(&buf, "%%PDF-%s\n%%\xE2\xE3\xCF\xD3\n", version)
+	offsets := make([]int, len(objs)+1)
+	for i, body := range objs {
+		offsets[i+1] = buf.Len()
+		fmt.Fprintf(&buf, "%d 0 obj\n%s\nendobj\n", i+1, body)
+	}
+	xrefOff := buf.Len()
+	fmt.Fprintf(&buf, "xref\n0 %d\n%010d %05d f \n", len(objs)+1, 0, 65535)
+	for i := 1; i <= len(objs); i++ {
+		fmt.Fprintf(&buf, "%010d %05d n \n", offsets[i], 0)
+	}
+	fmt.Fprintf(&buf, "trailer\n<< /Size %d %s >>\nstartxref\n%d\n%%%%EOF\n",
+		len(objs)+1, trailer, xrefOff)
+	return buf.Bytes()
+}
+
+// pageInheritancePDF builds a three-level page tree where leaf pages inherit
+// /MediaBox and /Rotate two levels up (from the /Pages root), /CropBox and
+// /Resources one level up, and the second leaf overrides /MediaBox and /Rotate
+// locally. It exercises attribute inheritance per PDF 32000-1:2008 §7.7.3.4.
+func pageInheritancePDF() []byte {
+	return classicalPDF("1.7", []string{
+		"<< /Type /Catalog /Pages 2 0 R >>",
+		"<< /Type /Pages /Count 2 /Kids [ 3 0 R ] /MediaBox [0 0 612 792] /Resources << /Font << /F1 6 0 R >> >> /Rotate 90 >>",
+		"<< /Type /Pages /Count 2 /Parent 2 0 R /Kids [ 4 0 R 5 0 R ] /CropBox [10 10 602 782] >>",
+		"<< /Type /Page /Parent 3 0 R >>",
+		"<< /Type /Page /Parent 3 0 R /MediaBox [0 0 200 200] /Rotate 0 >>",
+		"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+	}, "/Root 1 0 R")
+}
+
+// pageContentsArrayPDF builds a single page whose /Contents is an array of two
+// uncompressed content streams that must be concatenated.
+func pageContentsArrayPDF() []byte {
+	const c1 = "q 1 0 0 1 50 50 cm"
+	const c2 = "BT /F1 12 Tf (Hello) Tj ET"
+	return classicalPDF("1.7", []string{
+		"<< /Type /Catalog /Pages 2 0 R >>",
+		"<< /Type /Pages /Count 1 /Kids [ 3 0 R ] >>",
+		"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] /Contents [ 4 0 R 5 0 R ] >>",
+		fmt.Sprintf("<< /Length %d >>\nstream\n%s\nendstream", len(c1), c1),
+		fmt.Sprintf("<< /Length %d >>\nstream\n%s\nendstream", len(c2), c2),
+	}, "/Root 1 0 R")
 }
 
 func flateStreamPDF() []byte {

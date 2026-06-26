@@ -29,9 +29,10 @@ or too thin (rsc/pdf, ledongthuc/pdf). pdfdisassembler targets PDF 1.x and
 In scope: PDF 1.x and 2.0 reading, classical xref and xref streams,
 indirect-object resolution, stream filters (FlateDecode, ASCII85, ASCIIHex,
 LZW, RunLength), text-string decoding (PDFDocEncoding, UTF-16BE BOM, UTF-8
-BOM), catalog + page tree, DocumentInfo, XMP metadata access, structure
-tree traversal, `/Standard` security handler (V2, V4, V5), defensive
-parsing.
+BOM), catalog + page-tree navigation (page boxes, rotation, resources and
+content streams, with inherited attributes resolved along the `/Parent`
+chain), DocumentInfo, XMP metadata access, structure tree traversal,
+`/Standard` security handler (V2, V4, V5), defensive parsing.
 
 Out of scope: writing PDFs, image filters (DCTDecode/JBIG2/JPX/CCITTFax),
 image rendering, font internals, XFA, public-key encryption, signature
@@ -83,7 +84,8 @@ for entry := range r.Objects() {
 
 More complete examples live under [`examples/`](examples): `inspect`
 prints a summary of a PDF, `structtree` walks the `/StructTreeRoot` as a
-starting point for accessibility tooling.
+starting point for accessibility tooling, and `pageinfo` reports per-page
+boxes, rotation, resources and content size via the page-tree API.
 
 ## Testing
 

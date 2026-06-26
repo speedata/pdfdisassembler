@@ -297,6 +297,13 @@ func (s *Stream) RawLength() int64 {
 	return s.rawLength
 }
 
+// RawBytes returns a copy of the stream's raw, undecoded bytes exactly as they
+// appear in the file — before any filter or decryption is applied. For the
+// decoded content, use Content.
+func (s *Stream) RawBytes() ([]byte, error) {
+	return s.reader.rawStreamBytes(s)
+}
+
 // ObjectEntry is yielded by Reader.Objects: an in-use indirect object plus
 // its resolved value.
 type ObjectEntry struct {

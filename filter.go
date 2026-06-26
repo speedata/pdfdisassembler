@@ -17,6 +17,18 @@ func (r *Reader) decodeStream(s *Stream) ([]byte, error) {
 	return r.applyFilters(s, raw, true)
 }
 
+// rawStreamBytes returns a copy of the stream's raw bytes from the file buffer,
+// applying the same bounds check decodeStream uses.
+func (r *Reader) rawStreamBytes(s *Stream) ([]byte, error) {
+	if s.rawOffset < 0 || s.rawOffset+s.rawLength > int64(len(r.buf)) {
+		return nil, fmt.Errorf("pdfdisassembler: stream %d %d R: bytes out of range", s.objNumber, s.objGeneration)
+	}
+	raw := r.buf[s.rawOffset : s.rawOffset+s.rawLength]
+	out := make([]byte, len(raw))
+	copy(out, raw)
+	return out, nil
+}
+
 // applyFilters decrypts (if encrypted is true and an encryption context
 // exists) and runs the filter chain declared on the stream dict.
 func (r *Reader) applyFilters(s *Stream, raw []byte, encrypted bool) ([]byte, error) {

@@ -1,0 +1,112 @@
+{
+  "version": "1.7",
+  "xref_format": "classical",
+  "encrypted": false,
+  "trailer": {
+    "dict": {
+      "Size": {
+        "int": 6
+      },
+      "Root": {
+        "ref": "1 0"
+      }
+    }
+  },
+  "objects": {
+    "1 0": {
+      "dict": {
+        "Type": {
+          "name": "Catalog"
+        },
+        "Pages": {
+          "ref": "2 0"
+        }
+      }
+    },
+    "2 0": {
+      "dict": {
+        "Type": {
+          "name": "Pages"
+        },
+        "Count": {
+          "int": 1
+        },
+        "Kids": {
+          "array": [
+            {
+              "ref": "3 0"
+            }
+          ]
+        }
+      }
+    },
+    "3 0": {
+      "dict": {
+        "Type": {
+          "name": "Page"
+        },
+        "Parent": {
+          "ref": "2 0"
+        },
+        "MediaBox": {
+          "array": [
+            {
+              "int": 0
+            },
+            {
+              "int": 0
+            },
+            {
+              "int": 200
+            },
+            {
+              "int": 200
+            }
+          ]
+        },
+        "Contents": {
+          "array": [
+            {
+              "ref": "4 0"
+            },
+            {
+              "ref": "5 0"
+            }
+          ]
+        }
+      }
+    },
+    "4 0": {
+      "stream": {
+        "dict": {
+          "Length": {
+            "int": 18
+          }
+        },
+        "raw_length": 18,
+        "filters": [],
+        "decoded": {
+          "length": 18,
+          "sha256": "ac399976dc867824f50e13f5f86d9f5b9be76d49ae538a01d7567552914e9f80",
+          "preview_utf8": "q 1 0 0 1 50 50 cm"
+        }
+      }
+    },
+    "5 0": {
+      "stream": {
+        "dict": {
+          "Length": {
+            "int": 26
+          }
+        },
+        "raw_length": 26,
+        "filters": [],
+        "decoded": {
+          "length": 26,
+          "sha256": "9dd85240377330fc34370ec0a297930e7cba5a30efbaab71f21337dbfc1d864e",
+          "preview_utf8": "BT /F1 12 Tf (Hello) Tj ET"
+        }
+      }
+    }
+  }
+}

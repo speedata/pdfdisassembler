@@ -1,0 +1,165 @@
+{
+  "version": "1.7",
+  "xref_format": "classical",
+  "encrypted": false,
+  "trailer": {
+    "dict": {
+      "Size": {
+        "int": 7
+      },
+      "Root": {
+        "ref": "1 0"
+      }
+    }
+  },
+  "objects": {
+    "1 0": {
+      "dict": {
+        "Type": {
+          "name": "Catalog"
+        },
+        "Pages": {
+          "ref": "2 0"
+        }
+      }
+    },
+    "2 0": {
+      "dict": {
+        "Type": {
+          "name": "Pages"
+        },
+        "Count": {
+          "int": 2
+        },
+        "Kids": {
+          "array": [
+            {
+              "ref": "3 0"
+            }
+          ]
+        },
+        "MediaBox": {
+          "array": [
+            {
+              "int": 0
+            },
+            {
+              "int": 0
+            },
+            {
+              "int": 612
+            },
+            {
+              "int": 792
+            }
+          ]
+        },
+        "Resources": {
+          "dict": {
+            "Font": {
+              "dict": {
+                "F1": {
+                  "ref": "6 0"
+                }
+              }
+            }
+          }
+        },
+        "Rotate": {
+          "int": 90
+        }
+      }
+    },
+    "3 0": {
+      "dict": {
+        "Type": {
+          "name": "Pages"
+        },
+        "Count": {
+          "int": 2
+        },
+        "Parent": {
+          "ref": "2 0"
+        },
+        "Kids": {
+          "array": [
+            {
+              "ref": "4 0"
+            },
+            {
+              "ref": "5 0"
+            }
+          ]
+        },
+        "CropBox": {
+          "array": [
+            {
+              "int": 10
+            },
+            {
+              "int": 10
+            },
+            {
+              "int": 602
+            },
+            {
+              "int": 782
+            }
+          ]
+        }
+      }
+    },
+    "4 0": {
+      "dict": {
+        "Type": {
+          "name": "Page"
+        },
+        "Parent": {
+          "ref": "3 0"
+        }
+      }
+    },
+    "5 0": {
+      "dict": {
+        "Type": {
+          "name": "Page"
+        },
+        "Parent": {
+          "ref": "3 0"
+        },
+        "MediaBox": {
+          "array": [
+            {
+              "int": 0
+            },
+            {
+              "int": 0
+            },
+            {
+              "int": 200
+            },
+            {
+              "int": 200
+            }
+          ]
+        },
+        "Rotate": {
+          "int": 0
+        }
+      }
+    },
+    "6 0": {
+      "dict": {
+        "Type": {
+          "name": "Font"
+        },
+        "Subtype": {
+          "name": "Type1"
+        },
+        "BaseFont": {
+          "name": "Helvetica"
+        }
+      }
+    }
+  }
+}
