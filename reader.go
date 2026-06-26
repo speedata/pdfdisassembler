@@ -48,6 +48,11 @@ type Reader struct {
 	objCache map[Reference]Object
 	// resolveStack guards against indirect-reference cycles.
 	resolveStack map[Reference]struct{}
+
+	// Page-tree cache, populated lazily by loadPages.
+	pages       []*Page
+	pagesLoaded bool
+	pagesErr    error
 }
 
 // xrefEntry describes a single in-use object.
